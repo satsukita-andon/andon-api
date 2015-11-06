@@ -32,11 +32,12 @@ libraryDependencies ++= {
     "org.scalikejdbc" %% "scalikejdbc" % scalikejdbc,
     "org.scalikejdbc" %% "scalikejdbc-config" % scalikejdbc,
     "org.scalikejdbc" %% "scalikejdbc-test" % scalikejdbc % "test",
+    "org.scalatest" %% "scalatest" % "2.2.4" % "test",
     "com.h2database" % "h2" % "1.4.187",
     "ch.qos.logback" % "logback-classic" % "1.1.3",
     "com.github.nscala-time" %% "nscala-time" % "2.0.0",
     "org.eclipse.jgit" % "org.eclipse.jgit" % "4.0.1.201506240215-r",
-    "org.scalatest" %% "scalatest" % "2.2.4" % "test"
+    "com.pauldijou" %% "jwt-json4s-jackson" % "0.4.1"
   )
 }
 
