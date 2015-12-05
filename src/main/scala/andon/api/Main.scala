@@ -2,8 +2,6 @@ package andon.api
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.server.{ RouteResult, RoutingLog, RoutingSetup, RoutingSettings }
-import akka.stream.scaladsl.Sink
 import akka.stream.ActorMaterializer
 
 import scalikejdbc.config._
@@ -16,7 +14,7 @@ object Main extends App {
 
   val version = "dev"
   val host = "localhost"
-  val port = 6039
+  val port = 6039 // TODO: Make it possible to specify it by config file
 
   DBs.setupAll()
 
