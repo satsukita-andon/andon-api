@@ -19,3 +19,8 @@ images {
 history {
   path = "../history"
 }
+
+jwt {
+  secretKey = "secret"
+  algorithm = "HS256"
+}
