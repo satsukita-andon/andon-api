@@ -19,7 +19,7 @@ object Token {
     }
   }
 
-  implicit val formats = DefaultFormats
+  private implicit val formats = DefaultFormats
 
   def decode(str: String): Option[Token] = {
     JwtJson4s.decodeJson(str, key, Seq(algo)).toOption.map(_.extract[Token])
