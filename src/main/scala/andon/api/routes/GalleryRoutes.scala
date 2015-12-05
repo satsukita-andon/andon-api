@@ -4,7 +4,7 @@ import scala.util.Try
 
 import akka.http.scaladsl.server.Directives._
 
-import andon.api.util.{ Json4sJacksonSupport, OrdIntMatcher, SignedIntNumber }
+import andon.api.util.Json4sJacksonSupport
 import andon.api.controllers.GalleryController
 
 object GalleryRoutes extends Json4sJacksonSupport {

@@ -4,7 +4,7 @@ import scala.util.Try
 
 import akka.http.scaladsl.server.Directives._
 
-import andon.api.util.{ Json4sJacksonSupport, OrdIntMatcher }
+import andon.api.util.Json4sJacksonSupport
 import andon.api.controllers.FestivalController
 
 object FestivalRoutes extends Json4sJacksonSupport {

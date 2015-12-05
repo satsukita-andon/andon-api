@@ -2,7 +2,7 @@ package andon.api.routes
 
 import akka.http.scaladsl.server.Directives._
 
-import andon.api.util.{ Json4sJacksonSupport, OrdIntMatcher, SignedIntNumber }
+import andon.api.util.Json4sJacksonSupport
 import andon.api.controllers.ClassDataController
 
 object ClassDataRoutes extends Json4sJacksonSupport {
