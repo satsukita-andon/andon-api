@@ -8,6 +8,7 @@ import andon.api.util.Json4sJacksonSupport
 import andon.api.controllers.FestivalController
 
 object FestivalRoutes extends Json4sJacksonSupport {
+  import andon.api.util.Token
   def route = {
     pathPrefix("festivals") {
       pathEnd {

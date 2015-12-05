@@ -100,9 +100,9 @@ trait ArticleController {
       .toRight(Errors.ResourceNotFound)
   }
 
-  def add(article: ArticleJsons.Create): Either[Errors.Error, A.Detail] = {
+  def add(userId: Long, article: ArticleJsons.Create): Either[Errors.Error, A.Detail] = {
     DB.localTx { implicit s =>
-      Articles.create(article.title, article.body, article.user_id).right.map { a =>
+      Articles.create(article.title, article.body, userId).right.map { a =>
         HistoryService.create(a.article.id, a.article.body, a.article.createUserId)
         A.Detail(a)
       }

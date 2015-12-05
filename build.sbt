@@ -21,7 +21,7 @@ scalacOptions ++= Seq(
 
 libraryDependencies ++= {
   val akkaHttp = "2.0-M2"
-  val json4s = "3.3.0"
+  val json4s = "3.2.10" // see https://github.com/pauldijou/jwt-scala/issues/10
   val akkaHttpJson4s = "1.3.0"
   val scalikejdbc = "2.3.1"
   val scalatest = "2.2.4"

@@ -7,6 +7,8 @@ import akka.http.scaladsl.server.Directives._
 import andon.api.util.{ Errors, Json4sJacksonSupport }
 import andon.api.controllers.{ ArticleController, ArticleJsons }
 
+import WrapperDirectives._
+
 object ArticleRoutes extends Json4sJacksonSupport {
 
   def route = {
@@ -25,13 +27,12 @@ object ArticleRoutes extends Json4sJacksonSupport {
           }
         } ~
         post { // POST /articles
-          entity(as[ArticleJsons.Create]) { article =>
-            complete {
-              ArticleController.add(article)
+          auth { token =>
+            jsonEntity[ArticleJsons.Create] { article =>
+              complete {
+                ArticleController.add(token.userId, article)
+              }
             }
-          } ~
-          complete {
-            Errors.JsonError
           }
         }
       } ~
