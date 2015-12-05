@@ -10,11 +10,10 @@ import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.marshalling.Marshaller._
 import akka.http.scaladsl.unmarshalling.Unmarshaller._
 
-import andon.api.util.Json4sJacksonSupport._
-import andon.api.util.{ Errors, OrdIntMatcher, SignedIntNumber }
+import andon.api.util.{ Errors, OrdIntMatcher, SignedIntNumber, Json4sJacksonSupport }
 import andon.api.controllers._
 
-object Routes {
+object Routes extends Json4sJacksonSupport {
 
   def route(version: String)(implicit ec: ExecutionContext, fm: ActorMaterializer): Route = {
     val exceptionHandler = ExceptionHandler {
