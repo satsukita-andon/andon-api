@@ -11,8 +11,7 @@ object ArticleJsons {
 
   final case class Create(
     title: String,
-    body: String,
-    user_id: Long // TODO: remove this field
+    body: String
   )
 
   final case class Detail(

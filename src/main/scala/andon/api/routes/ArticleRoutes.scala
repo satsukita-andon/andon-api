@@ -17,8 +17,8 @@ object ArticleRoutes extends Json4sJacksonSupport {
         get { // GET /articles
           parameterMap { params =>
             complete {
-              val offset = params.get("offset").map(s => Try(s.toInt).toOption).flatten
-              val limit = params.get("limit").map(s => Try(s.toInt).toOption).flatten
+              val offset = params.get("offset").flatMap(s => Try(s.toInt).toOption)
+              val limit = params.get("limit").flatMap(s => Try(s.toInt).toOption)
               ArticleController.all(
                 offset = offset,
                 limit = limit

@@ -6,7 +6,7 @@ import org.json4s.jackson.Serialization.write
 import pdi.jwt.{ JwtJson4s, JwtAlgorithm }
 import pdi.jwt.algorithms.JwtHmacAlgorithm
 
-final case class Token(userId: Long, username: String, expirationDate: Long)
+final case class Token(userId: Long, login: String, expirationDate: Long)
 
 object Token {
 

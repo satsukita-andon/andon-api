@@ -42,6 +42,12 @@ object Users {
     }.map(User(u)).single.apply()
   }
 
+  def findByLogin(login: String)(implicit s: DBSession = User.autoSession): Option[User] = {
+    withSQL {
+      select.from(User as u).where.eq(u.login, login)
+    }.map(User(u)).single.apply()
+  }
+
   def allIn(ids: Seq[Long])(implicit s: DBSession = User.autoSession): Seq[User] = {
     withSQL {
       select.from(User as u).where.in(u.id, ids)

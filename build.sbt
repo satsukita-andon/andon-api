@@ -19,6 +19,8 @@ scalacOptions ++= Seq(
   "-Ywarn-value-discard"
 )
 
+resolvers ++= Seq("RoundEights" at "http://maven.spikemark.net/roundeights")
+
 libraryDependencies ++= {
   val akkaHttp = "2.0-M2"
   val json4s = "3.2.10" // see https://github.com/pauldijou/jwt-scala/issues/10
@@ -40,7 +42,8 @@ libraryDependencies ++= {
     "ch.qos.logback" % "logback-classic" % "1.1.3",
     "com.github.nscala-time" %% "nscala-time" % "2.6.0",
     "org.eclipse.jgit" % "org.eclipse.jgit" % "4.0.1.201506240215-r",
-    "com.pauldijou" %% "jwt-json4s-jackson" % "0.4.1"
+    "com.pauldijou" %% "jwt-json4s-jackson" % "0.4.1",
+    "com.roundeights" %% "hasher" % "1.2.0"
   )
 }
 
