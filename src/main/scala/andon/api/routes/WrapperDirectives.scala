@@ -5,9 +5,9 @@ import scala.concurrent.Future
 import akka.http.scaladsl.server._, Directives._
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
 
-import andon.api.util.{ Token, Errors, Json4sJacksonSupport }
+import andon.api.util.{ Token, Errors, JsonSupport }
 
-object WrapperDirectives extends Json4sJacksonSupport {
+object WrapperDirectives extends JsonSupport {
 
   def jsonEntity[T](f: T => Route)(implicit um: FromRequestUnmarshaller[T]) = {
     jsonEntityOrElse[T](f)(um) ~ complete(Errors.JsonError)

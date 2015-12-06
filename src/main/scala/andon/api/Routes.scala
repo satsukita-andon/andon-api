@@ -5,10 +5,10 @@ import scala.util.control.NonFatal
 import akka.http.scaladsl.server.{ ExceptionHandler, Directives }
 import Directives._
 
-import andon.api.util.{ Errors, Json4sJacksonSupport }
+import andon.api.util.{ Errors, JsonSupport }
 import andon.api.routes._
 
-object Routes extends Json4sJacksonSupport {
+object Routes extends JsonSupport {
 
   def route(version: String) = {
     handleExceptions(exceptionHandler) {

@@ -3,10 +3,10 @@ package andon.api.routes
 import akka.http.scaladsl.server.Directives._
 
 import andon.api.controllers.{ AuthController, AuthJsons }
-import andon.api.util.{ Json4sJacksonSupport }
+import andon.api.util.{ JsonSupport }
 import WrapperDirectives._
 
-object AuthRoutes extends Json4sJacksonSupport {
+object AuthRoutes extends JsonSupport {
   def route = {
     pathPrefix("auth") {
       path("token") {

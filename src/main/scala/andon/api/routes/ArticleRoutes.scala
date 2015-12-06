@@ -4,12 +4,12 @@ import scala.util.Try
 
 import akka.http.scaladsl.server.Directives._
 
-import andon.api.util.{ Errors, Json4sJacksonSupport }
+import andon.api.util.{ Errors, JsonSupport }
 import andon.api.controllers.{ ArticleController, ArticleJsons }
 
 import WrapperDirectives._
 
-object ArticleRoutes extends Json4sJacksonSupport {
+object ArticleRoutes extends JsonSupport {
 
   def route = {
     pathPrefix("articles") {

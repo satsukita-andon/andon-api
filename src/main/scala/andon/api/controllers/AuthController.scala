@@ -16,7 +16,7 @@ trait AuthController {
   import AuthJsons._
 
   private def newToken(userId: Long, login: String): EncodedToken = {
-    val token = Token(userId, login, (DateTime.now + 7.days).getMillis) // TODO: do not use magic number `7`
+    val token = Token(userId, login, DateTime.now + 7.days) // TODO: do not use magic number `7`
     EncodedToken(Token.encode(token))
   }
 

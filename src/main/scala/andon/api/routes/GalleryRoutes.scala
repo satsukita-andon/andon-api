@@ -4,10 +4,10 @@ import scala.util.Try
 
 import akka.http.scaladsl.server.Directives._
 
-import andon.api.util.Json4sJacksonSupport
+import andon.api.util.JsonSupport
 import andon.api.controllers.GalleryController
 
-object GalleryRoutes extends Json4sJacksonSupport {
+object GalleryRoutes extends JsonSupport {
 
   def route = {
     path("gallery" / OrdIntMatcher / IntNumber / SignedIntNumber) { case (t, g, c) =>

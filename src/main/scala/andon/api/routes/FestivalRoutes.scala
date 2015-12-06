@@ -4,10 +4,10 @@ import scala.util.Try
 
 import akka.http.scaladsl.server.Directives._
 
-import andon.api.util.Json4sJacksonSupport
+import andon.api.util.JsonSupport
 import andon.api.controllers.FestivalController
 
-object FestivalRoutes extends Json4sJacksonSupport {
+object FestivalRoutes extends JsonSupport {
   import andon.api.util.Token
   def route = {
     pathPrefix("festivals") {

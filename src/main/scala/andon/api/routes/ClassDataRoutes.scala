@@ -2,10 +2,10 @@ package andon.api.routes
 
 import akka.http.scaladsl.server.Directives._
 
-import andon.api.util.Json4sJacksonSupport
+import andon.api.util.JsonSupport
 import andon.api.controllers.ClassDataController
 
-object ClassDataRoutes extends Json4sJacksonSupport {
+object ClassDataRoutes extends JsonSupport {
 
   def route = {
     pathPrefix("classes" / OrdIntMatcher) { t =>

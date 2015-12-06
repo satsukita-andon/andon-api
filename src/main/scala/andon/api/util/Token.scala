@@ -5,10 +5,11 @@ import org.json4s._
 import org.json4s.jackson.Serialization.write
 import pdi.jwt.{ JwtJson4s, JwtAlgorithm }
 import pdi.jwt.algorithms.JwtHmacAlgorithm
+import com.github.nscala_time.time.Imports.DateTime
 
-final case class Token(userId: Long, login: String, expirationDate: Long)
+final case class Token(userId: Long, login: String, expirationDate: DateTime)
 
-object Token {
+object Token extends JsonFormats {
 
   private val conf = ConfigFactory.load()
   private val key = conf.getString("jwt.secretKey")
@@ -18,8 +19,6 @@ object Token {
       case _ => throw new ClassCastException("config `jwt.algorithm` must be JwtHmacAlgorithm")
     }
   }
-
-  private implicit val formats = DefaultFormats
 
   def decode(str: String): Option[Token] = {
     JwtJson4s.decodeJson(str, key, Seq(algo)).toOption.map(_.extract[Token])
