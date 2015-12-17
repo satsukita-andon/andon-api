@@ -1,15 +1,18 @@
 package andon.api.util
 
 import com.typesafe.config.ConfigFactory
-import org.json4s._
-import org.json4s.jackson.Serialization.write
-import pdi.jwt.{ JwtJson4s, JwtAlgorithm }
+import io.circe._, generic.auto._, syntax._
+import pdi.jwt.{ Jwt, JwtAlgorithm }
 import pdi.jwt.algorithms.JwtHmacAlgorithm
-import com.github.nscala_time.time.Imports.DateTime
 
-final case class Token(userId: Long, login: String, expirationDate: DateTime)
+final case class Token(
+  userId: Int,
+  login: String,
+  admin: Boolean,
+  suspended: Boolean
+)
 
-object Token extends JsonFormats {
+object Token {
 
   private val conf = ConfigFactory.load()
   private val key = conf.getString("jwt.secretKey")
@@ -21,10 +24,12 @@ object Token extends JsonFormats {
   }
 
   def decode(str: String): Option[Token] = {
-    JwtJson4s.decodeJson(str, key, Seq(algo)).toOption.map(_.extract[Token])
+    Jwt.decode(str, key, Seq(algo)).toOption.flatMap { claim =>
+      parse.decode[Token](claim).toOption
+    }
   }
 
   def encode(token: Token): String = {
-    JwtJson4s.encode(write(token), key, algo)
+    Jwt.encode(token.asJson.noSpaces, key, algo)
   }
 }

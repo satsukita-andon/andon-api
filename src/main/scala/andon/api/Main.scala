@@ -1,26 +1,20 @@
 package andon.api
 
-import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
-import akka.stream.ActorMaterializer
+import com.twitter.finagle.Http
+import com.twitter.util.Await
+import scalikejdbc.config.DBs
 
-import scalikejdbc.config._
+// for encode/decode json.
+// if these are omited, an error occured at endpoints.all.toService
+import io.finch.circe._
+import io.circe.generic.auto._
 
 object Main extends App {
 
-  implicit val system = ActorSystem()
-  implicit val materializer = ActorMaterializer()
-  implicit val executor = system.dispatcher
-
-  val version = "dev"
-  val host = "localhost"
-  val port = 6039 // TODO: Make it possible to specify it by config file
+  val port = 6039
 
   DBs.setupAll()
 
-  Http().bindAndHandle(
-    interface = host,
-    port = port,
-    handler = Routes.route(version)
-  )
+  val service = endpoints.all.toService
+  Await.ready(Http.server.serve(s":${port}", service))
 }

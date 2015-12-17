@@ -15,35 +15,39 @@ scalacOptions ++= Seq(
   "-Ywarn-dead-code",
   "-Ywarn-numeric-widen",
   "-Ywarn-unused",
-  "-Ywarn-unused-import",
-  "-Ywarn-value-discard"
+  "-Ywarn-unused-import"
+  // "-Ywarn-value-discard"
 )
 
-resolvers ++= Seq("RoundEights" at "http://maven.spikemark.net/roundeights")
+resolvers ++= Seq(
+  "jitpack" at "https://jitpack.io"
+)
 
 libraryDependencies ++= {
-  val akkaHttp = "2.0-M2"
-  val json4s = "3.2.10" // see https://github.com/pauldijou/jwt-scala/issues/10
-  val akkaHttpJson4s = "1.3.0"
+  val finch = "0.9.2"
+  val circe = "0.2.1"
   val scalikejdbc = "2.3.1"
   val scalatest = "2.2.4"
+  val postgres = "9.4-1206-jdbc42"
+  val jwt = "0.4.1"
+  val joda = "2.9.1"
+  val shapeless = "2.2.5"
   Seq(
-    "com.typesafe.akka" %% "akka-stream-experimental" % akkaHttp,
-    "com.typesafe.akka" %% "akka-http-core-experimental" % akkaHttp,
-    "com.typesafe.akka" %% "akka-http-experimental" % akkaHttp,
-    "org.json4s" %% "json4s-jackson" % json4s,
-    "org.json4s" %% "json4s-ext" % json4s,
-    "de.heikoseeberger" %% "akka-http-json4s" % akkaHttpJson4s,
+    "com.github.finagle" %% "finch-core" % finch,
+    "com.github.finagle" %% "finch-circe" % finch,
+    "io.circe" %% "circe-core" % circe,
+    "io.circe" %% "circe-generic" % circe,
+    "io.circe" %% "circe-parse" % circe,
+    "com.pauldijou" %% "jwt-core" % jwt,
     "org.scalikejdbc" %% "scalikejdbc" % scalikejdbc,
     "org.scalikejdbc" %% "scalikejdbc-config" % scalikejdbc,
     "org.scalikejdbc" %% "scalikejdbc-test" % scalikejdbc % "test",
-    "org.scalatest" %% "scalatest" % scalatest % "test",
-    "com.h2database" % "h2" % "1.4.187",
     "ch.qos.logback" % "logback-classic" % "1.1.3",
-    "com.github.nscala-time" %% "nscala-time" % "2.6.0",
-    "org.eclipse.jgit" % "org.eclipse.jgit" % "4.0.1.201506240215-r",
-    "com.pauldijou" %% "jwt-json4s-jackson" % "0.4.1",
-    "com.roundeights" %% "hasher" % "1.2.0"
+    "org.postgresql" % "postgresql" % postgres,
+    "org.scalatest" %% "scalatest" % scalatest % "test",
+    "joda-time" % "joda-time" % joda,
+    "com.chuusai" %% "shapeless" % shapeless,
+    "com.github.jeremyh" % "jBCrypt" % "jbcrypt-0.4"
   )
 }
 
@@ -58,3 +62,7 @@ val conf = ConfigFactory.parseFile(new File("src/main/resources/application.conf
 flywayUrl := conf.getString("db.default.url")
 
 flywayUser := conf.getString("db.default.user")
+
+// generate models
+
+scalikejdbcSettings

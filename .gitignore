@@ -1,4 +1,5 @@
 target
 *.db
+.history
 
 src/main/resources/application.conf
