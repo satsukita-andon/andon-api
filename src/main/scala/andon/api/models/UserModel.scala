@@ -4,11 +4,12 @@ import scalikejdbc._
 
 import generated.User
 import andon.api.util.PasswordUtil
+import PostgresSyntax._
 
 trait UserModel {
+  // compare by lower case string
   def findByLogin(login: String)(implicit s: DBSession): Option[User] = {
-    // compare lower case string
-    ???
+    User.findBy(SQLSyntax.eq(User.u.login.lower, login.toLowerCase))
   }
   def findByAuthInfo(login: String, password: String)(implicit s: DBSession): Option[User] = {
     findByLogin(login).flatMap { user =>
