@@ -1,19 +1,27 @@
 package andon.api.errors
 
-sealed abstract class AndonError(val code: String, val message: String) extends Exception
-case object NotImplemented extends AndonError(
+sealed abstract class AndonError(val code: String, val message: String) extends Exception(message)
+case class NotImplemented(msg: String = "Requested API is not implemented.") extends AndonError(
   code = "not_implemented",
-  message = "Requested API is not implemented."
+  message = msg
 )
-case object ApiNotFound extends AndonError(
+case class ApiNotFound(msg: String = "Requested API is not found.") extends AndonError(
   code = "api_not_found",
-  message = "Requested API is not found."
+  message = msg
 )
-case object ResourceNotFound extends AndonError(
+case class ResourceNotFound(msg: String = "Requested resource is not found.") extends AndonError(
   code = "resource_not_found",
-  message = "Requested resource is not found."
+  message = msg
 )
-case object Unauthorized extends AndonError(
+case class Unauthorized(msg: String = "You can not access this API.") extends AndonError(
   code = "unauthorized",
-  message = "You do not have the right to access this API."
+  message = msg
+)
+case class Unexpected(msg: String) extends AndonError(
+  code = "unexpected_error",
+  message = msg
+)
+case class BadRequest(msg: String) extends AndonError(
+  code = "bad_request",
+  message = msg
 )

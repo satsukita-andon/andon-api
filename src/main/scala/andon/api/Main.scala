@@ -8,6 +8,7 @@ import scalikejdbc.config.DBs
 // if these are omited, an error occured at endpoints.all.toService
 import io.finch.circe._
 import io.circe.generic.auto._
+import andon.api.endpoints.encodeException
 
 object Main extends App {
 

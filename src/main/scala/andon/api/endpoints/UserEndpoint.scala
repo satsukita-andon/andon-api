@@ -15,7 +15,7 @@ object UserEndpoint extends EndpointBase {
     DB.readOnly { implicit s =>
       UserModel.findByLogin(login).map { user =>
         Ok(User(user))
-      }.getOrElse(NotFound(ResourceNotFound))
+      }.getOrElse(NotFound(ResourceNotFound()))
     }
   }
 
