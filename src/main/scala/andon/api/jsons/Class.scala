@@ -27,21 +27,21 @@ final case class Class(
 )
 
 object Class {
-  def apply(c: ClassRow, prizes: Seq[PrizeRow], tags: Seq[String]): Class = Class(
-    id = c.id,
-    times = c.times,
-    times_ord = OrdInt(c.times).toString,
-    grade = c.grade,
-    `class` = c.`class`,
-    title = c.title,
-    title_kana = c.titleKana,
-    description = c.description,
-    score = c.score,
-    header_image_url = c.headerImageUrl,
-    thumbnail_url = c.thumbnailUrl,
+  def apply(`class`: ClassRow, prizes: Seq[PrizeRow], tags: Seq[String]): Class = Class(
+    id = `class`.id,
+    times = `class`.times,
+    times_ord = OrdInt(`class`.times).toString,
+    grade = `class`.grade,
+    `class` = `class`.`class`,
+    title = `class`.title,
+    title_kana = `class`.titleKana,
+    description = `class`.description,
+    score = `class`.score,
+    header_image_url = `class`.headerImageUrl,
+    thumbnail_url = `class`.thumbnailUrl,
     prizes = prizes.map(Prize.apply),
     tags = tags,
-    created_at = c.createdAt,
-    updated_at = c.updatedAt
+    created_at = `class`.createdAt,
+    updated_at = `class`.updatedAt
   )
 }

@@ -14,6 +14,14 @@ object ClassEndpoint extends EndpointBase {
 
   val name = "classes"
 
+  val find: Endpoint[Class] = get(ver / name / classId) { (classId: ClassId) =>
+    DB.readOnly { implicit s =>
+      ClassModel.findWithPrizesAndTags(classId).map { case (clazz, prizes, tags) =>
+        Ok(Class(`class` = clazz, prizes = prizes, tags = tags))
+      }.getOrElse(NotFound(ResourceNotFound(s"${classId} is not found.")))
+    }
+  }
+
   val findArticles: Endpoint[Items[ClassArticle]] = get(
     ver / name / classId / "articles" ? paging
   ) { (classId: ClassId, p: Paging) =>
@@ -59,5 +67,5 @@ object ClassEndpoint extends EndpointBase {
     }
   }
 
-  val all = findArticles :+: createArticle
+  val all = find :+: findArticles :+: createArticle
 }
