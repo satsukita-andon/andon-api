@@ -20,10 +20,12 @@ scalacOptions ++= Seq(
 )
 
 resolvers ++= Seq(
-  "jitpack" at "https://jitpack.io"
+  "jitpack" at "https://jitpack.io",
+  "twttr" at "https://maven.twttr.com/"
 )
 
 libraryDependencies ++= {
+  val twitterServer = "1.16.0"
   val finch = "0.9.2"
   val circe = "0.2.1"
   val scalikejdbc = "2.3.1"
@@ -33,6 +35,7 @@ libraryDependencies ++= {
   val joda = "2.9.1"
   val shapeless = "2.2.5"
   Seq(
+    "com.twitter" %% "twitter-server" % twitterServer,
     "com.github.finagle" %% "finch-core" % finch,
     "com.github.finagle" %% "finch-circe" % finch,
     "io.circe" %% "circe-core" % circe,
