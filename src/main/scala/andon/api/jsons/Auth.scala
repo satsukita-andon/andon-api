@@ -9,10 +9,7 @@ final case class EncodedToken(token: String)
 object EncodedToken {
   def apply(user: UserRow): EncodedToken = {
     val token = Token(
-      userId = user.id,
-      login = user.login,
-      admin = user.admin,
-      suspended = user.suspended
+      userId = user.id
     )
     EncodedToken(Token.encode(token))
   }

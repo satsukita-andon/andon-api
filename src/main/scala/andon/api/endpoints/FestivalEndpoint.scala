@@ -8,21 +8,23 @@ import scalikejdbc.DB
 // import andon.api.errors._
 import andon.api.jsons.{ Festival, FestivalCreation }
 import andon.api.models.FestivalModel
-import andon.api.util.{ OrdInt, Token }
+import andon.api.util.{ OrdInt, Token, Right }
 
 object FestivalEndpoint extends EndpointBase {
 
   val name = "festivals"
 
-  val create: Endpoint[Festival] = post(ver / name ? body.as[FestivalCreation] ? auth) { (fes: FestivalCreation, _: Token) =>
+  val create: Endpoint[Festival] = post(ver / name ? body.as[FestivalCreation] ? token) { (fes: FestivalCreation, token: Token) =>
     DB.localTx { implicit s =>
-      FestivalModel.create(
-        times = fes.times,
-        theme = fes.theme,
-        themeKana = fes.theme_kana,
-        themeRoman = fes.theme_roman,
-        thumbnailUrl = fes.thumbnail_url
-      ).fold(BadRequest(_), f => Ok(Festival(f)))
+      token.allowedOnly(Right.Admin) { _ =>
+        FestivalModel.create(
+          times = fes.times,
+          theme = fes.theme,
+          themeKana = fes.theme_kana,
+          themeRoman = fes.theme_roman,
+          thumbnailUrl = fes.thumbnail_url
+        ).fold(BadRequest(_), f => Ok(Festival(f)))
+      }
     }
   }
 

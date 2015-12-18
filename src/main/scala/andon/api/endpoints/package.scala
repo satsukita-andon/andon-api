@@ -18,7 +18,7 @@ package object endpoints {
       FestivalEndpoint.all :+:
       notFound
   ).handle {
-    case e: AuthRequired => Unauthorized(e)
+    case e: TokenRequired => Unauthorized(e)
     case e: Exception => InternalServerError(e)
   }
 

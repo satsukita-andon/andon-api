@@ -5,7 +5,7 @@ import io.finch.circe._
 import io.circe.generic.auto._
 import scalikejdbc.DB
 
-import andon.api.errors.AuthRequired
+import andon.api.errors._
 import andon.api.jsons.{ AuthInfo, EncodedToken }
 import andon.api.models.UserModel
 
@@ -17,7 +17,7 @@ object AuthEndpoint extends EndpointBase {
     DB.localTx { implicit s =>
       UserModel.findByAuthInfo(info.login, info.password).map { user =>
         Ok(EncodedToken(user))
-      }.getOrElse(Unauthorized(AuthRequired()))
+      }.getOrElse(BadRequest(Incorrect("login name or password is incorrect.")))
     }
   }
 

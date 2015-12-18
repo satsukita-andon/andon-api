@@ -3,7 +3,7 @@ package andon.api.endpoints
 import scala.util.Try
 import io.finch._
 
-import andon.api.errors.AuthRequired
+import andon.api.errors._
 import andon.api.util.{ OrdInt, Token }
 
 trait EndpointBase {
@@ -11,7 +11,7 @@ trait EndpointBase {
   val name: String
 
   // must be handle exception to cast status-code to 401 Unauthorized
-  val auth: RequestReader[Token] = headerOption("Authentication").flatMap { header =>
+  val token: RequestReader[Token] = headerOption("Authentication").flatMap { header =>
     val r = """^\s*Bearer\s+([^\s\,]*)\s*$""".r
     val tokenOpt = for {
       str <- header
@@ -19,7 +19,7 @@ trait EndpointBase {
       token <- Token.decode(tokenStr)
     } yield token
     tokenOpt match {
-      case None => RequestReader.exception(AuthRequired())
+      case None => RequestReader.exception(TokenRequired())
       case Some(token) => RequestReader.value(token)
     }
   }

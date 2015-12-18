@@ -18,15 +18,23 @@ case class ResourceAlreadyExists(msg: String = "Resource already exists.") exten
   code = "resource_already_exists",
   message = msg
 )
-case class AuthRequired(msg: String = "Authentication is required.") extends AndonError(
-  code = "authentication_required",
+case class TokenRequired(msg: String = "A valid access token is required.") extends AndonError(
+  code = "token_required",
+  message = msg
+)
+case class NoAuthorization(msg: String = "You cannot access the resource.") extends AndonError(
+  code = "no_authorization",
   message = msg
 )
 case class Unexpected(msg: String) extends AndonError(
   code = "unexpected_error",
   message = msg
 )
-case class BadRequest(msg: String) extends AndonError(
-  code = "bad_request",
+case class Incorrect(msg: String = "Your request is something incorrect.") extends AndonError(
+  code = "incorrect",
+  message = msg
+)
+case class JsonError(msg: String = "Cannot parse as json.") extends AndonError(
+  code = "json_error",
   message = msg
 )
