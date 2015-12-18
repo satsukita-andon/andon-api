@@ -3,8 +3,11 @@ package andon.api.jsons
 import org.joda.time.DateTime
 
 import andon.api.models.generated.{
+  Class => ClassRow,
+  Prize => PrizeRow,
   ClassArticle => ClassArticleRow,
-  ClassArticleRevision => ClassArticleRevisionRow
+  ClassArticleRevision => ClassArticleRevisionRow,
+  User => UserRow
 }
 import andon.api.util._
 
@@ -15,32 +18,39 @@ final case class ClassArticleCreation(
   comment: String
 )
 
-final case class ClassArticle(
+final case class DetailedClassArticle(
   id: Int,
+  `class`: Class,
   revision_number: Short,
   status: PublishingStatus,
   title: String,
   body: String,
   comment: String,
-  created_by: Option[Int],
-  updated_by: Option[Int],
+  created_by: Option[User],
+  updated_by: Option[User],
   created_at: DateTime,
   updated_at: DateTime
 )
 
-object ClassArticle {
-  def apply(ca: ClassArticleRow, rev: ClassArticleRevisionRow): ClassArticle = {
-    ClassArticle(
-      id = ca.id,
-      revision_number = rev.revisionNumber,
-      status = PublishingStatus.from(ca.status).get, // TODO
-      title = rev.title,
-      body = rev.title,
-      comment = rev.comment,
-      created_by = ca.createdBy,
-      updated_by = rev.userId,
-      created_at = ca.createdAt,
-      updated_at = rev.createdAt
-    )
-  }
+object DetailedClassArticle {
+  def apply(
+    `class`: ClassRow,
+    prizes: Seq[PrizeRow],
+    article: ClassArticleRow,
+    revision: ClassArticleRevisionRow,
+    createdBy: Option[UserRow],
+    updatedBy: Option[UserRow]
+  ): DetailedClassArticle = DetailedClassArticle(
+    id = article.id,
+    `class` = Class(`class`, prizes),
+    revision_number = revision.revisionNumber,
+    status = PublishingStatus.from(article.status).get, // TODO
+    title = revision.title,
+    body = revision.body,
+    comment = revision.comment,
+    created_by = createdBy.map(User.apply),
+    updated_by = updatedBy.map(User.apply),
+    created_at = article.createdAt,
+    updated_at = revision.createdAt
+  )
 }
