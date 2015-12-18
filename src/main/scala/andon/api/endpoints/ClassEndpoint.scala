@@ -15,25 +15,25 @@ object ClassEndpoint extends EndpointBase {
   val name = "classes"
 
   val findArticles: Endpoint[Items[ClassArticle]] = get(
-    ver / name / ordint("times") / short("grade") / short("class") / "articles"
-      ? paging
-  ) { (t: OrdInt, g: Short, c: Short, p: Paging) =>
+    ver / name / classId / "articles" ? paging
+  ) { (classId: ClassId, p: Paging) =>
     DB.readOnly { implicit s =>
-      val articles = ClassArticleModel.findAll(t, g, c, p).map { case (a, r) =>
-        ClassArticle(a, r)
-      }
-      val count = ClassArticleModel.count(t, g, c)
-      Ok(Items(all_count = count, count = articles.length.toLong, items = articles))
+      ClassModel.findId(classId).map { id =>
+        val articles = ClassArticleModel.findAll(id, p).map { case (a, r) =>
+          ClassArticle(a, r)
+        }
+        val count = ClassArticleModel.count(id)
+        Ok(Items(all_count = count, count = articles.length.toLong, items = articles))
+      }.getOrElse(NotFound(ResourceNotFound(s"${classId} is not found.")))
     }
   }
 
   val createArticle: Endpoint[DetailedClassArticle] = post(
-    ver / name / ordint("times") / short("grade") / short("class") / "articles"
-      ? body.as[ClassArticleCreation] ? token
-  ) { (t: OrdInt, g: Short, c: Short, articleDef: ClassArticleCreation, token: Token) =>
+    ver / name / classId / "articles" ? body.as[ClassArticleCreation] ? token
+  ) { (classId: ClassId, articleDef: ClassArticleCreation, token: Token) =>
     DB.localTx { implicit s =>
-      token.allowedOnly(Right.ClassmateOf(t.raw, g, c)) { user =>
-        ClassModel.findWithPrizes(t, g, c).map { case (clazz, prizes) =>
+      token.allowedOnly(Right.ClassmateOf(classId)) { user =>
+        ClassModel.findWithPrizes(classId).map { case (clazz, prizes) =>
           ClassArticleModel.create(
             userId = user.id,
             classId = clazz.id,
@@ -52,7 +52,7 @@ object ClassEndpoint extends EndpointBase {
             ))
           })
         }.getOrElse(
-          NotFound(ResourceNotFound(s"${t}${g}-${c} is not found."))
+          NotFound(ResourceNotFound(s"${classId} is not found."))
         )
       }
     }

@@ -13,33 +13,32 @@ object ClassArticleModel {
   val ca = ClassArticle.ca
   val car = ClassArticleRevision.car
 
-  def findAll(
-    times: OrdInt, grade: Short, `class`: Short, paging: Paging
-  )(implicit s: DBSession): Seq[(ClassArticle, ClassArticleRevision)] = {
-    ClassModel.findId(times, grade, `class`).map { classId =>
-      withSQL {
-        paging.sql {
-          select.from(ClassArticle as ca)
-            .innerJoin(ClassArticleRevision as car)
-            .on(SQLSyntax.eq(ca.id, car.articleId).and
-              .eq(ca.latestRevisionNumber, car.revisionNumber))
-            .where
-            .eq(ca.classId, classId)
-            .orderBy(ca.createdAt).desc
-        }
-      }.one(ClassArticle(ca))
-        .toOne(ClassArticleRevision(car))
-        .map { (article, revision) => (article, revision) }
-        .list
-        .apply()
-    }.getOrElse(Seq())
+  def findAll(classId: Short, paging: Paging)(implicit s: DBSession): Seq[(ClassArticle, ClassArticleRevision)] = {
+    withSQL {
+      paging.sql {
+        select.from(ClassArticle as ca)
+          .innerJoin(ClassArticleRevision as car)
+          .on(SQLSyntax.eq(ca.id, car.articleId).and
+            .eq(ca.latestRevisionNumber, car.revisionNumber))
+          .where
+          .eq(ca.classId, classId)
+          .orderBy(ca.createdAt).desc
+      }
+    }.one(ClassArticle(ca))
+      .toOne(ClassArticleRevision(car))
+      .map { (article, revision) => (article, revision) }
+      .list
+      .apply()
+  }
+  def findAll(classId: ClassId, paging: Paging)(implicit s: DBSession): Seq[(ClassArticle, ClassArticleRevision)] = {
+    ClassModel.findId(classId).map(findAll(_, paging)).getOrElse(Seq())
   }
 
   def count(classId: Short)(implicit s: DBSession): Long = {
     ClassArticle.countBy(SQLSyntax.eq(ca.classId, classId))
   }
-  def count(times: OrdInt, grade: Short, `class`: Short)(implicit s: DBSession): Long = {
-    ClassModel.findId(times, grade, `class`).map(count).getOrElse(0L)
+  def count(classId: ClassId)(implicit s: DBSession): Long = {
+    ClassModel.findId(classId).map(count).getOrElse(0L)
   }
 
   def create(
