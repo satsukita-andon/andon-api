@@ -8,7 +8,9 @@ final case class Paging(
     // DESC or ASC
     // order by _
 ) {
-  def applyDefault(offset: Option[Int], limit: Option[Int]): Paging =
+  def defaultLimit(limit: Int): Paging =
+    this.copy(limit = this.limit.orElse(Some(limit)))
+  def applyDefault(offset: Option[Int] = None, limit: Option[Int] = None): Paging =
     Paging(
       offset = this.offset.orElse(offset),
       limit = this.limit.orElse(limit)

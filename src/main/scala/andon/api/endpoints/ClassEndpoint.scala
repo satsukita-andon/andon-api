@@ -22,6 +22,21 @@ object ClassEndpoint extends EndpointBase {
     }
   }
 
+  val findImages: Endpoint[Items[ClassImage]] = get(
+    ver / name / classId / "images" ? paging
+  ) { (classId: ClassId, paging: Paging) =>
+    DB.readOnly { implicit s =>
+      ClassModel.findId(classId).map { id =>
+        val p = paging.defaultLimit(50)
+        val images = ClassImageModel.findAll(id, p).map { case (i, u) =>
+          ClassImage.apply(i, u)
+        }
+        val count = ClassImageModel.count(id)
+        Ok(Items(all_count = count, count = images.length.toLong, items = images))
+      }.getOrElse(NotFound(ResourceNotFound(s"${classId} is not found.")))
+    }
+  }
+
   val findArticles: Endpoint[Items[ClassArticle]] = get(
     ver / name / classId / "articles" ? paging
   ) { (classId: ClassId, p: Paging) =>
@@ -67,5 +82,5 @@ object ClassEndpoint extends EndpointBase {
     }
   }
 
-  val all = find :+: findArticles :+: createArticle
+  val all = find :+: findImages :+: findArticles :+: createArticle
 }
