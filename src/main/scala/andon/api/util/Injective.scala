@@ -21,7 +21,7 @@ trait Injective[S, T] {
   implicit def injectiveDomainEncoder(implicit encode: Encoder[T]): Encoder[S] = {
     encode.contramap(to)
   }
-  implicit def injectiveDomainDecorder(implicit decode: Decoder[T]): Decoder[S] = {
+  implicit def injectiveDomainDecoder(implicit decode: Decoder[T]): Decoder[S] = {
     Decoder.withReattempt { cursor =>
       decode.tryDecode(cursor).flatMap { t =>
         from(t) match {

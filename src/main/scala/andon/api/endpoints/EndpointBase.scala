@@ -4,7 +4,7 @@ import scala.util.Try
 import io.finch._
 
 import andon.api.errors._
-import andon.api.util.{ OrdInt, Token }
+import andon.api.util._
 
 trait EndpointBase {
   val ver = "dev"
@@ -23,6 +23,9 @@ trait EndpointBase {
       case Some(token) => RequestReader.value(token)
     }
   }
+  val paging: RequestReader[Paging] = (
+    paramOption("offset").as[Int] :: paramOption("limit").as[Int]
+  ).as[Paging]
   object short extends Extractor("short", s => Try(s.toShort).toOption)
   object ordint extends Extractor("ordint", OrdInt.parse)
 }

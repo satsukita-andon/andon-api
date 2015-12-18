@@ -17,3 +17,9 @@ object ErrorResponse {
     ErrorResponse(andonError.code, andonError.message)
   }
 }
+
+final case class Items[A](
+  all_count: Long,
+  count: Long,
+  items: Seq[A]
+)

@@ -6,7 +6,7 @@ import io.circe.generic.auto._
 import scalikejdbc.DB
 
 import andon.api.errors._
-import andon.api.jsons.{ DetailedClassArticle, ClassArticleCreation }
+import andon.api.jsons._
 import andon.api.models._
 import andon.api.util._
 
@@ -14,9 +14,22 @@ object ClassEndpoint extends EndpointBase {
 
   val name = "classes"
 
-  val createArticle: Endpoint[DetailedClassArticle] = post(
-    ver / name / ordint("times") / short("grade") / short("class") / "articles" ? body.as[ClassArticleCreation] ? token
+  val findArticles: Endpoint[Items[ClassArticle]] = get(
+    ver / name / ordint("times") / short("grade") / short("class") / "articles"
+      ? paging
+  ) { (t: OrdInt, g: Short, c: Short, p: Paging) =>
+    DB.readOnly { implicit s =>
+      val articles = ClassArticleModel.findAll(t, g, c, p).map { case (a, r) =>
+        ClassArticle(a, r)
+      }
+      val count = ClassArticleModel.count(t, g, c)
+      Ok(Items(all_count = count, count = articles.length.toLong, items = articles))
+    }
+  }
 
+  val createArticle: Endpoint[DetailedClassArticle] = post(
+    ver / name / ordint("times") / short("grade") / short("class") / "articles"
+      ? body.as[ClassArticleCreation] ? token
   ) { (t: OrdInt, g: Short, c: Short, articleDef: ClassArticleCreation, token: Token) =>
     DB.localTx { implicit s =>
       token.allowedOnly(Right.ClassmateOf(t.raw, g, c)) { user =>
@@ -44,4 +57,6 @@ object ClassEndpoint extends EndpointBase {
       }
     }
   }
+
+  val all = findArticles :+: createArticle
 }

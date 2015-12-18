@@ -18,6 +18,32 @@ final case class ClassArticleCreation(
   comment: String
 )
 
+final case class ClassArticle(
+  id: Int,
+  revision_number: Short,
+  status: PublishingStatus,
+  title: String,
+  comment: String,
+  created_by: Option[Int],
+  updated_by: Option[Int],
+  created_at: DateTime,
+  updated_at: DateTime
+)
+
+object ClassArticle {
+  def apply(article: ClassArticleRow, revision: ClassArticleRevisionRow): ClassArticle = ClassArticle(
+    id = article.id,
+    revision_number = revision.revisionNumber,
+    status = PublishingStatus.from(article.status).get, // TODO
+    title = revision.title,
+    comment = revision.comment,
+    created_by = article.createdBy,
+    updated_by = revision.userId,
+    created_at = article.createdAt,
+    updated_at = revision.createdAt
+  )
+}
+
 final case class DetailedClassArticle(
   id: Int,
   `class`: Class,
