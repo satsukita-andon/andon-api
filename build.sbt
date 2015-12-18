@@ -34,6 +34,7 @@ libraryDependencies ++= {
   val jwt = "0.4.1"
   val joda = "2.9.1"
   val shapeless = "2.2.5"
+  val cats = "0.3.0"
   Seq(
     "com.twitter" %% "twitter-server" % twitterServer,
     "com.github.finagle" %% "finch-core" % finch,
@@ -50,6 +51,7 @@ libraryDependencies ++= {
     "org.scalatest" %% "scalatest" % scalatest % "test",
     "joda-time" % "joda-time" % joda,
     "com.chuusai" %% "shapeless" % shapeless,
+    "org.spire-math" %% "cats" % cats,
     "com.github.jeremyh" % "jBCrypt" % "jbcrypt-0.4"
   )
 }

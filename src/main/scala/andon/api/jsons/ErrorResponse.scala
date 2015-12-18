@@ -8,6 +8,6 @@ object ErrorResponse {
   def apply(e: Throwable): ErrorResponse = e match {
     case e: AndonError => ErrorResponse(e.code, e.message)
     case e: io.finch.Error => ErrorResponse(BadRequest(e.getMessage))
-    case _ => ErrorResponse(Unexpected(e.getMessage))
+    case _ => ErrorResponse(Unexpected(e.toString))
   }
 }
