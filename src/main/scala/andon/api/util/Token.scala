@@ -16,11 +16,11 @@ final case class Token(
   // The reason why getting user from DB (not including info in token) for each time is that,
   // access-rights might be changed
   def allowedOnly[A](rights: Right*)(f: User => Output[A])(implicit s: DBSession) = {
-    partition(rights, f, _ => Forbidden(NoAuthorization()))
+    partition(rights, f, _ => Forbidden(NoPermission()))
   }
 
   def rejectedOnly[A](rights: Right*)(f: User => Output[A])(implicit s: DBSession) = {
-    partition(rights, _ => Forbidden(NoAuthorization()), f)
+    partition(rights, _ => Forbidden(NoPermission()), f)
   }
 
   private def partition[A](

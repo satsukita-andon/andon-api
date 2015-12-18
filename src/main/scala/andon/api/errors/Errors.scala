@@ -22,8 +22,8 @@ case class TokenRequired(msg: String = "A valid access token is required.") exte
   code = "token_required",
   message = msg
 )
-case class NoAuthorization(msg: String = "You cannot access the resource.") extends AndonError(
-  code = "no_authorization",
+case class NoPermission(msg: String = "You do not have permission to access the resource.") extends AndonError(
+  code = "no_permission",
   message = msg
 )
 case class Unexpected(msg: String) extends AndonError(
