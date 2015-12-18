@@ -10,7 +10,7 @@ trait Injective[S, T] {
   val all: Set[S] // all elements of finite set S
 
   def from(t: T): Option[S] = revdict.get(t)
-  private val revdict = {
+  private lazy val revdict = { // lazy is important!
     val images = all.map(to)
     if (images.size != all.size) {
       throw new Exception("This is not an injective function")

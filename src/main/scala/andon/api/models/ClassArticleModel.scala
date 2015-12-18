@@ -13,23 +13,20 @@ object ClassArticleModel {
   val ca = ClassArticle.ca
   val car = ClassArticleRevision.car
 
-  def opt(car: SyntaxProvider[ClassArticleRevision])(rs: WrappedResultSet): Option[ClassArticleRevision] =
-    rs.intOpt(car.resultName.id).map(_ => ClassArticleRevision(car)(rs))
-
   def findAll(
     times: OrdInt, grade: Short, `class`: Short, paging: Paging
   )(implicit s: DBSession): Seq[(ClassArticle, ClassArticleRevision)] = {
     ClassModel.findId(times, grade, `class`).map { classId =>
       withSQL {
         select.from(ClassArticle as ca)
-          .leftJoin(ClassArticleRevision as car)
+          .innerJoin(ClassArticleRevision as car)
           .on(SQLSyntax.eq(ca.id, car.articleId).and
             .eq(ca.latestRevisionNumber, car.revisionNumber))
           .where
           .eq(ca.classId, classId)
       }.one(ClassArticle(ca))
-        .toOptionalOne(opt(car))
-        .map { (article, revision) => (article, revision) } // TODO: option
+        .toOne(ClassArticleRevision(car))
+        .map { (article, revision) => (article, revision) }
         .list
         .apply()
     }.getOrElse(Seq())

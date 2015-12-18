@@ -9,7 +9,7 @@ import scalikejdbc.config.DBs
 import io.finch.circe._
 import io.circe.generic.auto._
 import andon.api.endpoints.encodeException
-import andon.api.util.PublishingStatus.{ injectiveDomainEncoder, injectiveDomainDecoder }
+import andon.api.jsons.Implicits._
 
 object Main extends App {
 

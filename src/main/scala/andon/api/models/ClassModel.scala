@@ -12,7 +12,7 @@ object ClassModel {
 
   def findId(times: OrdInt, grade: Short, `class`: Short)(implicit s: DBSession): Option[Short] = {
     withSQL {
-      select(c.id).from(Class as c).where
+      select(c.result.id).from(Class as c).where
         .eq(c.times, times.raw).and
         .eq(c.grade, grade).and
         .eq(c.`class`, `class`)
