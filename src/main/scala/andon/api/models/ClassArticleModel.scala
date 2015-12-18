@@ -18,12 +18,15 @@ object ClassArticleModel {
   )(implicit s: DBSession): Seq[(ClassArticle, ClassArticleRevision)] = {
     ClassModel.findId(times, grade, `class`).map { classId =>
       withSQL {
-        select.from(ClassArticle as ca)
-          .innerJoin(ClassArticleRevision as car)
-          .on(SQLSyntax.eq(ca.id, car.articleId).and
-            .eq(ca.latestRevisionNumber, car.revisionNumber))
-          .where
-          .eq(ca.classId, classId)
+        paging.sql {
+          select.from(ClassArticle as ca)
+            .innerJoin(ClassArticleRevision as car)
+            .on(SQLSyntax.eq(ca.id, car.articleId).and
+              .eq(ca.latestRevisionNumber, car.revisionNumber))
+            .where
+            .eq(ca.classId, classId)
+            .orderBy(ca.createdAt).desc
+        }
       }.one(ClassArticle(ca))
         .toOne(ClassArticleRevision(car))
         .map { (article, revision) => (article, revision) }
