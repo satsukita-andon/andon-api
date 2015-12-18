@@ -1,6 +1,5 @@
 package andon.api
 
-import scala.util.Try
 import io.finch._
 import io.circe._, generic.auto._, syntax._
 import shapeless.HNil
@@ -24,7 +23,4 @@ package object endpoints {
 
   implicit val encodeException: Encoder[Exception] =
     Encoder.instance(e => ErrorResponse(e).asJson)
-
-  val short: Endpoint[Short] = Extractor("short", s => Try(s.toShort).toOption)
-  val ordInt: Endpoint[OrdInt] = Extractor("ordint", OrdInt.parse)
 }
