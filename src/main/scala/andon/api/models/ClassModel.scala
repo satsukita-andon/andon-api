@@ -2,13 +2,20 @@ package andon.api.models
 
 import scalikejdbc._
 
-import andon.api.models.generated.{ Class, Prize }
+import andon.api.models.generated._
 import andon.api.util.ClassId
 
 object ClassModel {
 
   val c = Class.c
   val p = Prize.p
+  val cpr = ClassPrizeRel.cpr
+  val ct = ClassTag.ct
+
+  def prizeOpt(p: SyntaxProvider[Prize])(rs: WrappedResultSet): Option[Prize] =
+    rs.shortOpt(p.resultName.id).map(_ => Prize(p)(rs))
+  def classTagOpt(ct: SyntaxProvider[ClassTag])(rs: WrappedResultSet): Option[ClassTag] =
+    rs.intOpt(ct.resultName.id).map(_ => ClassTag(ct)(rs))
 
   def findId(classId: ClassId)(implicit s: DBSession): Option[Short] = {
     withSQL {
@@ -19,15 +26,20 @@ object ClassModel {
     }.map(_.short(c.resultName.id)).single.apply()
   }
 
-  def findWithPrizes(classId: ClassId)(implicit s: DBSession): Option[(Class, Seq[Prize])] = {
-    // TODO: join
-    Class.findBy(
-      SQLSyntax.eq(c.times, classId.times.raw).and
+  def findWithPrizesAndTags(classId: ClassId)(implicit s: DBSession): Option[(Class, Seq[Prize], Seq[String])] = {
+    withSQL {
+      select.from(Class as c)
+        .leftJoin(ClassPrizeRel as cpr).on(c.id, cpr.classId)
+        .leftJoin(Prize as p).on(cpr.prizeId, p.id)
+        .leftJoin(ClassTag as ct).on(c.id, ct.classId)
+        .where
+        .eq(c.times, classId.times.raw).and
         .eq(c.grade, classId.grade).and
         .eq(c.`class`, classId.`class`)
-    ).map { clazz =>
-      val prizes = Prize.findAllBy(SQLSyntax.eq(p.id, clazz.id))
-      (clazz, prizes)
-    }
+    }.one(Class(c))
+      .toManies(prizeOpt(p), classTagOpt(ct))
+      .map { (c, ps, cts) => (c, ps, cts.map(_.label)) }
+      .single
+      .apply()
   }
 }

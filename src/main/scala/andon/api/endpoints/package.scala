@@ -21,6 +21,7 @@ package object endpoints {
   ).handle {
     case e: TokenRequired => Unauthorized(e)
     case e: Exception => InternalServerError(e)
+    case e => InternalServerError(Unexpected(e.toString))
   }
 
   implicit val encodeException: Encoder[Exception] =

@@ -33,7 +33,7 @@ object ClassEndpoint extends EndpointBase {
   ) { (classId: ClassId, articleDef: ClassArticleCreation, token: Token) =>
     DB.localTx { implicit s =>
       token.allowedOnly(Right.ClassmateOf(classId)) { user =>
-        ClassModel.findWithPrizes(classId).map { case (clazz, prizes) =>
+        ClassModel.findWithPrizesAndTags(classId).map { case (clazz, prizes, tags) =>
           ClassArticleModel.create(
             userId = user.id,
             classId = clazz.id,
@@ -45,6 +45,7 @@ object ClassEndpoint extends EndpointBase {
             Ok(DetailedClassArticle(
               `class` = clazz,
               prizes = prizes,
+              tags = tags,
               article = a,
               revision = r,
               createdBy = Some(user),

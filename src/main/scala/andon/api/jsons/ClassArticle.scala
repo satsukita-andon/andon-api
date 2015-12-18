@@ -62,13 +62,14 @@ object DetailedClassArticle {
   def apply(
     `class`: ClassRow,
     prizes: Seq[PrizeRow],
+    tags: Seq[String],
     article: ClassArticleRow,
     revision: ClassArticleRevisionRow,
     createdBy: Option[UserRow],
     updatedBy: Option[UserRow]
   ): DetailedClassArticle = DetailedClassArticle(
     id = article.id,
-    `class` = Class(`class`, prizes),
+    `class` = Class(`class`, prizes, tags),
     revision_number = revision.revisionNumber,
     status = PublishingStatus.from(article.status).get, // TODO
     title = revision.title,

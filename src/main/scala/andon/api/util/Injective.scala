@@ -22,8 +22,8 @@ trait Injective[S, T] {
     encode.contramap(to)
   }
   implicit def injectiveDomainDecoder(implicit decode: Decoder[T]): Decoder[S] = {
-    Decoder.withReattempt { cursor =>
-      decode.tryDecode(cursor).flatMap { t =>
+    Decoder.instance { cursor =>
+      decode(cursor).flatMap { t =>
         from(t) match {
           case None => Xor.left(DecodingFailure("Injective", cursor.history))
           case Some(s) => Xor.right(s)
