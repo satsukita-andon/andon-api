@@ -26,6 +26,6 @@ object FestivalModel {
     )
     Xor.right(fes)
   } catch {
-    case e: java.sql.SQLException => Xor.left(ResourceAlreadyExists())
+    case e: java.sql.SQLException => Xor.left(ResourceAlreadyExists()) // TODO: check error type
   }
 }

@@ -33,7 +33,7 @@ final case class Token(
     }
   }
 
-  private def withUser[A](f: User => Output[A])(implicit s: DBSession) = {
+  def withUser[A](f: User => Output[A])(implicit s: DBSession) = {
     User.find(userId).map(f)
       .getOrElse(NotFound(ResourceNotFound("You are a deleted user.")))
   }

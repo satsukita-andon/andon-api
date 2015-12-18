@@ -23,6 +23,6 @@ trait EndpointBase {
       case Some(token) => RequestReader.value(token)
     }
   }
-  val short: Endpoint[Short] = Extractor("short", s => Try(s.toShort).toOption)
-  val ordInt: Endpoint[OrdInt] = Extractor("ordint", OrdInt.parse)
+  object short extends Extractor("short", s => Try(s.toShort).toOption)
+  object ordint extends Extractor("ordint", OrdInt.parse)
 }
