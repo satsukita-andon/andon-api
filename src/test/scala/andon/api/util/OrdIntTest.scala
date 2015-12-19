@@ -4,7 +4,7 @@ import org.scalatest.FlatSpec
 
 class OrdIntTest extends FlatSpec {
 
-  val numStrPairs = Seq(
+  val numStrPairs: Seq[(Short, String)] = Seq(
     0 -> "0th",
     1 -> "1st",
     2 -> "2nd",
@@ -17,7 +17,7 @@ class OrdIntTest extends FlatSpec {
     21 -> "21st",
     22 -> "22nd",
     23 -> "23rd"
-  )
+  ).map(t => t.copy(_1 = t._1.toShort))
 
   "OrdInt#toString" should "be OK" in {
     intercept[IllegalArgumentException](OrdInt(-1))
