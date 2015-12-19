@@ -1,12 +1,11 @@
 package andon.api
 
 import io.finch._
-import io.circe._, generic.auto._, syntax._
+import io.circe._
 import shapeless.HNil
 
 import andon.api.errors._
 import andon.api.util.OrdInt
-import andon.api.jsons.ErrorResponse
 
 package object endpoints {
   private def cast[S, T <: S](s: S, t: T): S = t
@@ -25,5 +24,5 @@ package object endpoints {
   }
 
   implicit val encodeException: Encoder[Exception] =
-    Encoder.instance(e => ErrorResponse(e).asJson)
+    Encoder.instance(AndonError(_).toJson)
 }

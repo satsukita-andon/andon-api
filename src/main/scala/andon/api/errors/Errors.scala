@@ -1,7 +1,29 @@
 package andon.api.errors
 
+import cats.data.NonEmptyList
+import io.circe._, generic.auto._, syntax._
+import io.finch.{ Error => FinchError }
+
 // do not duplicate name with T: io.finch.Failure
-sealed abstract class AndonError(val code: String, val message: String) extends Exception(message)
+sealed abstract class AndonError(val code: String, val message: String) extends Exception(message) {
+  def toJson: Json = {
+    val fields = Seq(
+      "code" -> Json.string(code),
+      "message" -> Json.string(message)
+    ) ++ extraFields
+    Json.obj(fields: _*)
+  }
+  def extraFields: Seq[(String, Json)] = Seq()
+}
+object AndonError {
+  implicit val encodeAndonError: Encoder[AndonError] = Encoder.instance(_.toJson)
+  def apply(e: Throwable): AndonError = e match {
+    case e: AndonError => e
+    case e: FinchError.NotParsed => JsonError(e.getMessage)
+    case e: FinchError => Incorrect(e.getMessage)
+    case _ => Unexpected(e.toString)
+  }
+}
 final case class ApiNotImplemented(msg: String = "Requested API is not implemented.") extends AndonError(
   code = "not_implemented",
   message = msg
@@ -41,4 +63,6 @@ final case class JsonError(msg: String = "Cannot parse as json.") extends AndonE
 final case class ValidationError(items: cats.data.NonEmptyList[InvalidItem], msg: String = "Validation failed.") extends AndonError(
   code = "validation_error",
   message = msg
-)
+) {
+  override def extraFields = Seq("errors" -> items.asJson)
+}
