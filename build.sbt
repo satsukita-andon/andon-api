@@ -29,12 +29,14 @@ libraryDependencies ++= {
   val finch = "0.9.2"
   val circe = "0.2.1"
   val scalikejdbc = "2.3.1"
-  val scalatest = "2.2.4"
   val postgres = "9.4-1206-jdbc42"
+  val hikaricp = "2.4.3"
+  val scalatest = "2.2.4"
   val jwt = "0.4.1"
   val joda = "2.9.1"
   val shapeless = "2.2.5"
   val cats = "0.3.0"
+  val config = "1.3.0"
   Seq(
     "com.twitter" %% "twitter-server" % twitterServer,
     "com.github.finagle" %% "finch-core" % finch,
@@ -44,14 +46,15 @@ libraryDependencies ++= {
     "io.circe" %% "circe-parse" % circe,
     "com.pauldijou" %% "jwt-core" % jwt,
     "org.scalikejdbc" %% "scalikejdbc" % scalikejdbc,
-    "org.scalikejdbc" %% "scalikejdbc-config" % scalikejdbc,
     "org.scalikejdbc" %% "scalikejdbc-test" % scalikejdbc % "test",
     "ch.qos.logback" % "logback-classic" % "1.1.3",
     "org.postgresql" % "postgresql" % postgres,
+    "com.zaxxer" % "HikariCP" % hikaricp,
     "org.scalatest" %% "scalatest" % scalatest % "test",
     "joda-time" % "joda-time" % joda,
     "com.chuusai" %% "shapeless" % shapeless,
     "org.spire-math" %% "cats" % cats,
+    "com.typesafe" % "config" % config,
     "com.github.jeremyh" % "jBCrypt" % "jbcrypt-0.4"
   )
 }
