@@ -8,7 +8,7 @@ object PublishingStatus extends Injective[PublishingStatus, String] {
   case object Published extends PublishingStatus("published")
   case object Suspended extends PublishingStatus("suspended")
   def to(s: PublishingStatus) = s.code
-  val all: Set[PublishingStatus] = Set(Private, Published, Suspended)
+  val domain: Set[PublishingStatus] = Set(Private, Published, Suspended)
 }
 
 sealed abstract class EditorialRight(val code: String) {
@@ -20,7 +20,7 @@ object EditorialRight extends Injective[EditorialRight, String] {
   case object Cohort extends EditorialRight("cohort")
   case object All extends EditorialRight("all")
   def to(e: EditorialRight) = e.code
-  val all: Set[EditorialRight] = Set(Selected, Classmate, Cohort, All)
+  val domain: Set[EditorialRight] = Set(Selected, Classmate, Cohort, All)
 }
 
 sealed abstract class FixedContentType(val code: String) {
@@ -31,5 +31,5 @@ object FixedContentType extends Injective[FixedContentType, String] {
   case object About extends FixedContentType("about")
   case object Contact extends FixedContentType("contact")
   def to(e: FixedContentType) = e.code
-  val all: Set[FixedContentType] = Set(News, About, Contact)
+  val domain: Set[FixedContentType] = Set(News, About, Contact)
 }

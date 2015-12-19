@@ -27,7 +27,7 @@ object ClassEndpoint extends EndpointBase {
   ) { (classId: ClassId, paging: Paging) =>
     DB.readOnly { implicit s =>
       ClassModel.findId(classId).map { id =>
-        val p = paging.defaultLimit(50)
+        val p = paging.defaultLimit(50).maxLimit(100).defaultOrder(ASC)
         val images = ClassImageModel.findAll(id, p).map { case (i, u) =>
           ClassImage.apply(i, u)
         }
@@ -39,9 +39,10 @@ object ClassEndpoint extends EndpointBase {
 
   val findArticles: Endpoint[Items[ClassArticle]] = get(
     ver / name / classId / "articles" ? paging
-  ) { (classId: ClassId, p: Paging) =>
+  ) { (classId: ClassId, paging: Paging) =>
     DB.readOnly { implicit s =>
       ClassModel.findId(classId).map { id =>
+        val p = paging.defaultOrder(DESC)
         val articles = ClassArticleModel.findAll(id, p).map { case (a, r) =>
           ClassArticle(a, r)
         }

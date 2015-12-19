@@ -5,17 +5,18 @@ import io.circe._
 
 // injective function from S to T
 trait Injective[S, T] {
-  // required: all.map(mapping) == all.map(mapping).distinct
+  // required: domain.map(to) == domain.map(to).distinct
   def to(s: S): T
-  val all: Set[S] // all elements of finite set S
+  val domain: Set[S] // all elements of finite set S
 
+  lazy val images = domain.map(to)
   def from(t: T): Option[S] = revdict.get(t)
+
   private lazy val revdict = { // lazy is important!
-    val images = all.map(to)
-    if (images.size != all.size) {
+    if (images.size != domain.size) {
       throw new Exception("This is not an injective function")
     }
-    images.zip(all).toMap
+    images.zip(domain).toMap
   }
 
   implicit def injectiveDomainEncoder(implicit encode: Encoder[T]): Encoder[S] = {

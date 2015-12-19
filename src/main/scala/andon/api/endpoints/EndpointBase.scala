@@ -24,7 +24,13 @@ trait EndpointBase {
     }
   }
   val paging: RequestReader[Paging] = (
-    paramOption("offset").as[Int] :: paramOption("limit").as[Int]
+    paramOption("offset").as[Int]
+      .should("be non negative")(_.map(_ >= 0).getOrElse(true)) ::
+      paramOption("limit").as[Int]
+      .should("be non negative")(_.map(_ >= 0).getOrElse(true)) ::
+      paramOption("order").as[String]
+      .should("be ASC or DESC")(_.map(SortType.images.contains(_)).getOrElse(true))
+      .map(_.flatMap(SortType.from))
   ).as[Paging]
   object short extends Extractor("short", s => Try(s.toShort).toOption)
   object ordint extends Extractor("ordint", OrdInt.parse)

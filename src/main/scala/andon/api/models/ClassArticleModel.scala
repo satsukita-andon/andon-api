@@ -22,7 +22,7 @@ object ClassArticleModel {
             .eq(ca.latestRevisionNumber, car.revisionNumber))
           .where
           .eq(ca.classId, classId)
-          .orderBy(ca.createdAt).desc
+          .orderBy(ca.id)
       }
     }.one(ClassArticle(ca))
       .toOne(ClassArticleRevision(car))

@@ -16,6 +16,7 @@ object ClassImageModel {
         select.from(ClassImage as ci)
           .innerJoin(User as u).on(ci.userId, u.id)
           .where.eq(ci.classId, classId)
+          .orderBy(ci.id)
       }
     }.one(ClassImage(ci))
       .toOne(User(u))
