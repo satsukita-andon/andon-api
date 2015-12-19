@@ -5,6 +5,7 @@ import org.scalatest._
 import scalikejdbc._
 import org.joda.time.DateTime
 
+import andon.api.models.UserModel
 import andon.api.models.generated.User
 import andon.api.util.PasswordUtil
 
@@ -29,46 +30,59 @@ class AllEndpointSpec extends Suites(
   var normal: Option[User] = None
   var suspended: Option[User] = None
 
-  private def insertTestUsers(): Unit = {
+  def insertTestUsers(): Unit = {
     DB.localTx { implicit s =>
       val now = DateTime.now
-      this.admin = Some(User.create(
-        login = "admin",
-        password = PasswordUtil.encrypt("admin"),
-        name = "管理人",
-        times = 60,
-        admin = true,
-        suspended = false,
-        createdAt = now,
-        updatedAt = now
-      ))
-      this.normal = Some(User.create(
-        login = "normal",
-        password = PasswordUtil.encrypt("normal"),
-        name = "通常ユーザー",
-        times = 60,
-        classFirst = Some(5),
-        classSecond = Some(7),
-        classThird = Some(9),
-        admin = false,
-        suspended = false,
-        createdAt = now,
-        updatedAt = now
-      ))
-      this.suspended = Some(User.create(
-        login = "suspended",
-        password = PasswordUtil.encrypt("suspended"),
-        name = "凍結ユーザー",
-        times = 60,
-        admin = false,
-        suspended = true,
-        createdAt = now,
-        updatedAt = now
-      ))
+      UserModel.findByLogin("admin").map { user =>
+        this.admin = Some(user)
+      }.getOrElse {
+        this.admin = Some(User.create(
+          login = "admin",
+          password = PasswordUtil.encrypt("admin"),
+          name = "管理人",
+          times = 60,
+          admin = true,
+          suspended = false,
+          createdAt = now,
+          updatedAt = now
+        ))
+      }
+      UserModel.findByLogin("normal").map { user =>
+        this.normal = Some(user)
+      }.getOrElse {
+        this.normal = Some(User.create(
+          login = "normal",
+          password = PasswordUtil.encrypt("normal"),
+          name = "通常ユーザー",
+          times = 60,
+          classFirst = Some(5),
+          classSecond = Some(7),
+          classThird = Some(9),
+          admin = false,
+          suspended = false,
+          createdAt = now,
+          updatedAt = now
+        ))
+      }
+
+      UserModel.findByLogin("suspended").map { user =>
+        this.suspended = Some(user)
+      }.getOrElse {
+        this.suspended = Some(User.create(
+          login = "suspended",
+          password = PasswordUtil.encrypt("suspended"),
+          name = "凍結ユーザー",
+          times = 60,
+          admin = false,
+          suspended = true,
+          createdAt = now,
+          updatedAt = now
+        ))
+      }
     }
   }
 
-  private def deleteTestUsers(): Unit = {
+  def deleteTestUsers(): Unit = {
     DB.localTx { implicit s =>
       admin.foreach(User.destroy)
       normal.foreach(User.destroy)

@@ -4,7 +4,6 @@ import scalikejdbc._
 
 import generated.User
 import andon.api.util.PasswordUtil
-import PostgresSyntax._
 
 trait UserModel {
   // compare by lower case string
