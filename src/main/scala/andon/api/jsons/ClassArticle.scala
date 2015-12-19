@@ -1,7 +1,9 @@
 package andon.api.jsons
 
+import cats.data.ValidatedNel
 import org.joda.time.DateTime
 
+import andon.api.errors._
 import andon.api.models.generated.{
   Class => ClassRow,
   Prize => PrizeRow,
@@ -16,7 +18,16 @@ final case class ClassArticleCreation(
   title: String,
   body: String,
   comment: String
-)
+) {
+  val validate: ValidatedNel[InvalidItem, ClassArticleCreation] = {
+    Validation.run(this, Seq(
+      (title.length > 200) -> InvalidItem(
+        field = "title",
+        reason = "`title` must be less than or equal to 200 characters"
+      )
+    ))
+  }
+}
 
 final case class ClassArticle(
   id: Int,
