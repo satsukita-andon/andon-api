@@ -22,7 +22,7 @@ object FestivalEndpoint extends EndpointBase {
     }
   }
 
-  val create: Endpoint[Festival] = post(ver / name ? body.as[FestivalCreation] ? token) { (fes: FestivalCreation, token: Token) =>
+  val create: Endpoint[Festival] = post(ver / name ? token ? body.as[FestivalCreation]) { (token: Token, fes: FestivalCreation) =>
     DB.localTx { implicit s =>
       token.allowedOnly(Right.Admin) { _ =>
         FestivalModel.create(
