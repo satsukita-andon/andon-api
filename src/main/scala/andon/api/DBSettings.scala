@@ -2,9 +2,8 @@ package andon.api
 
 import scala.concurrent.SyncVar
 import com.typesafe.config.ConfigFactory
-import javax.sql.DataSource
+import com.zaxxer.hikari.{ HikariDataSource, HikariConfig }
 import scalikejdbc._
-import com.zaxxer.hikari._
 
 object DBSettings {
 
