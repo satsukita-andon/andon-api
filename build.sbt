@@ -41,6 +41,7 @@ libraryDependencies ++= {
     "com.twitter" %% "twitter-server" % twitterServer,
     "com.github.finagle" %% "finch-core" % finch,
     "com.github.finagle" %% "finch-circe" % finch,
+    "com.github.finagle" %% "finch-test" % finch % "test",
     "io.circe" %% "circe-core" % circe,
     "io.circe" %% "circe-generic" % circe,
     "io.circe" %% "circe-parse" % circe,
