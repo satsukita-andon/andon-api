@@ -24,6 +24,7 @@ trait EndpointBase {
     }
   }
   val order: RequestReader[Option[SortOrder]] = paramOption("order").as[String]
+    .map(_.map(_.toUpperCase))
     .should("be ASC or DESC")(_.map(SortOrder.images.contains(_)).getOrElse(true))
     .map(_.flatMap(SortOrder.from))
   val paging: RequestReader[Paging] = (
