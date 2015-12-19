@@ -3,7 +3,6 @@ package andon.api.endpoints
 import io.circe._
 
 trait JsonUtil {
-  import scala.language.postfixOps
 
   case class TraceException(msg: String) extends Exception(msg)
 

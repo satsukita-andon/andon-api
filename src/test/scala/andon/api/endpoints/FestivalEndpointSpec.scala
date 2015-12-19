@@ -1,12 +1,12 @@
 package andon.api.endpoints
 
-import scala.language.postfixOps
 import org.scalatest._
 import io.circe.parse.parse
 import com.twitter.finagle.http._
+import com.twitter.io.Buf
 
 @DoNotDiscover
-class FestivalEndpointSpec extends AndonServiceSuite with JsonUtil {
+class FestivalEndpointSpec extends AndonServiceSuite with AndonUtil with JsonUtil {
 
   "GET /dev/festivals" should "return festivals" in { f =>
     val req = Request("/dev/festivals")
