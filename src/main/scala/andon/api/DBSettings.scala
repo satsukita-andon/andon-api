@@ -21,15 +21,13 @@ object DBSettings {
     new HikariDataSource(config)
   }
 
-  def setup(): Unit = {
+  def setup(s: LoggingSQLAndTimeSettings = LoggingSQLAndTimeSettings()): Unit = {
     val dataSource = dataSourceVar.get(0).getOrElse {
       val dataSource = newDataSource
       dataSourceVar.put(dataSource) // FIXME: maybe already set?
       dataSource
     }
-    GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
-      stackTraceDepth = 1
-    )
+    GlobalSettings.loggingSQLAndTime = s
     ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
   }
 

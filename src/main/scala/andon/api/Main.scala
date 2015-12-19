@@ -14,7 +14,10 @@ object Main extends App {
 
   val port = 6039
 
-  DBSettings.setup
+  val settings = scalikejdbc.LoggingSQLAndTimeSettings(
+    stackTraceDepth = 1
+  )
+  DBSettings.setup(settings)
 
   val service = endpoints.all.toService
   Await.ready(Http.server.serve(s":${port}", service))
