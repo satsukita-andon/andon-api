@@ -4,11 +4,20 @@ import cats.data.Xor
 import scalikejdbc._
 
 import andon.api.errors._
-import andon.api.util.OrdInt
+import andon.api.util._
 import generated.Festival
 
 object FestivalModel {
-  def all(implicit s: DBSession): Seq[Festival] = ???
+
+  val f = Festival.f
+
+  def findAll(order: SortOrder)(implicit s: DBSession): Seq[Festival] = {
+    withSQL {
+      order.sql {
+        select.from(Festival as f).orderBy(f.times)
+      }
+    }.map(Festival(f)).list.apply()
+  }
   def findByTimes(times: OrdInt)(implicit s: DBSession): Option[Festival] = ???
   def create(
     times: Short,

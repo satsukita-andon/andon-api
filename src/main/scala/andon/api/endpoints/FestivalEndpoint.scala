@@ -8,11 +8,19 @@ import scalikejdbc.DB
 // import andon.api.errors._
 import andon.api.jsons.{ Festival, FestivalCreation }
 import andon.api.models.FestivalModel
-import andon.api.util.{ OrdInt, Token, Right }
+import andon.api.util._
 
 object FestivalEndpoint extends EndpointBase {
 
   val name = "festivals"
+
+  val findAll: Endpoint[Seq[Festival]] = get(ver / name ? order) { (order: Option[SortOrder]) =>
+    DB.readOnly { implicit s =>
+      val o = order.getOrElse(DESC)
+      val fs = FestivalModel.findAll(o).map(Festival.apply) // Descending
+      Ok(fs)
+    }
+  }
 
   val create: Endpoint[Festival] = post(ver / name ? body.as[FestivalCreation] ? token) { (fes: FestivalCreation, token: Token) =>
     DB.localTx { implicit s =>
@@ -28,5 +36,5 @@ object FestivalEndpoint extends EndpointBase {
     }
   }
 
-  val all = create
+  val all = findAll :+: create
 }
