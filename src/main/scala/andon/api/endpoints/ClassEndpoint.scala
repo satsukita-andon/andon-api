@@ -10,9 +10,19 @@ import andon.api.jsons._
 import andon.api.models._
 import andon.api.util._
 
-object ClassEndpoint extends EndpointBase {
+object ClassEndpoint extends ClassEndpoint {
+  protected val ClassModel = andon.api.models.ClassModel
+  protected val ClassImageModel = andon.api.models.ClassImageModel
+  protected val ClassArticleModel = andon.api.models.ClassArticleModel
+}
+trait ClassEndpoint extends EndpointBase {
+
+  protected val ClassModel: ClassModel
+  protected val ClassImageModel: ClassImageModel
+  protected val ClassArticleModel: ClassArticleModel
 
   val name = "classes"
+  def all = find :+: findImages :+: findArticles :+: createArticle
 
   val find: Endpoint[Class] = get(ver / name / classId) { (classId: ClassId) =>
     DB.readOnly { implicit s =>
@@ -87,6 +97,4 @@ object ClassEndpoint extends EndpointBase {
       }
     }
   }
-
-  val all = find :+: findImages :+: findArticles :+: createArticle
 }

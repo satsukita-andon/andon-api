@@ -10,9 +10,15 @@ import andon.api.jsons.{ Festival, FestivalCreation }
 import andon.api.models.FestivalModel
 import andon.api.util._
 
-object FestivalEndpoint extends EndpointBase {
+object FestivalEndpoint extends FestivalEndpoint {
+  protected val FestivalModel = andon.api.models.FestivalModel
+}
+trait FestivalEndpoint extends EndpointBase {
+
+  protected val FestivalModel: FestivalModel
 
   val name = "festivals"
+  def all = findAll :+: create
 
   val findAll: Endpoint[Seq[Festival]] = get(ver / name ? order) { (order: Option[SortOrder]) =>
     DB.readOnly { implicit s =>
@@ -35,6 +41,4 @@ object FestivalEndpoint extends EndpointBase {
       }
     }
   }
-
-  val all = findAll :+: create
 }

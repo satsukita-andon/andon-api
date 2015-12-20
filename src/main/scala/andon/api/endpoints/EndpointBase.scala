@@ -9,6 +9,9 @@ import andon.api.util._
 trait EndpointBase {
   val ver = "dev"
   val name: String
+  // TODO: I want to make `all` an abstract method of `EndpointBase`,
+  //       but I don't know what type parameter should I pass to `Endpoint`.
+  // def all[C <: Coproduct]: Endpoint[C]
 
   // must be handle exception to cast status-code to 401 Unauthorized
   val token: RequestReader[Token] = headerOption("Authorization").flatMap { header =>

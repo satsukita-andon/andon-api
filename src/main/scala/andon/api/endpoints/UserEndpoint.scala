@@ -7,9 +7,15 @@ import andon.api.errors._
 import andon.api.jsons.User
 import andon.api.models.UserModel
 
-object UserEndpoint extends EndpointBase {
+object UserEndpoint extends UserEndpoint {
+  protected val UserModel = andon.api.models.UserModel
+}
+trait UserEndpoint extends EndpointBase {
+
+  protected val UserModel: UserModel
 
   val name = "users"
+  def all = findByLogin
 
   val findByLogin: Endpoint[User] = get(ver / name / string("login")) { login: String =>
     DB.readOnly { implicit s =>
@@ -18,6 +24,4 @@ object UserEndpoint extends EndpointBase {
       }.getOrElse(NotFound(ResourceNotFound()))
     }
   }
-
-  val all = findByLogin
 }

@@ -9,9 +9,15 @@ import andon.api.errors._
 import andon.api.jsons.{ AuthInfo, EncodedToken }
 import andon.api.models.UserModel
 
-object AuthEndpoint extends EndpointBase {
+object AuthEndpoint extends AuthEndpoint {
+  protected val UserModel = andon.api.models.UserModel
+}
+trait AuthEndpoint extends EndpointBase {
+
+  protected val UserModel: UserModel
 
   val name = "auth"
+  def all = newToken
 
   val newToken: Endpoint[EncodedToken] = post(ver / name / "token" ? body.as[AuthInfo]) { info: AuthInfo =>
     DB.localTx { implicit s =>
@@ -20,6 +26,4 @@ object AuthEndpoint extends EndpointBase {
       }.getOrElse(BadRequest(Incorrect("login name or password is incorrect.")))
     }
   }
-
-  val all = newToken
 }
