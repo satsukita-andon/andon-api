@@ -7,7 +7,8 @@ import scalikejdbc._
 
 object DBSettings {
 
-  val dataSourceVar: SyncVar[HikariDataSource] = new SyncVar()
+  var dataSource: HikariDataSource = null
+  var numberOfUsers: Int = 0
 
   def newDataSource = {
     val conf = ConfigFactory.load()
@@ -22,16 +23,29 @@ object DBSettings {
   }
 
   def setup(s: LoggingSQLAndTimeSettings = LoggingSQLAndTimeSettings()): Unit = {
-    val dataSource = dataSourceVar.get(0).getOrElse {
-      val dataSource = newDataSource
-      dataSourceVar.put(dataSource) // FIXME: maybe already set?
-      dataSource
+    synchronized {
+      if (numberOfUsers == 0) {
+        dataSource = newDataSource
+        ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
+        numberOfUsers = 1
+      } else {
+        numberOfUsers += 1
+      }
+      GlobalSettings.loggingSQLAndTime = s
     }
-    GlobalSettings.loggingSQLAndTime = s
-    ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
   }
 
   def shutdown(): Unit = {
-    dataSourceVar.get(0).foreach(_.close())
+    synchronized {
+      if (numberOfUsers <= 0) {
+        dataSource.close()
+        throw new Exception("Who does shutdown twice?")
+      } else if (numberOfUsers == 1) {
+        dataSource.close()
+        numberOfUsers = 0
+      } else {
+        numberOfUsers -= 1
+      }
+    }
   }
 }

@@ -13,7 +13,7 @@ class AllEndpointSpec extends Suites(
   new FestivalEndpointSpec
 ) with BeforeAndAfterAll {
   override def beforeAll() = {
-    println(s"${"=" * 40} startup ${"=" * 40}")
+    println(s"${"=" * 30} startup endpoint specs ${"=" * 30}")
     val settings = LoggingSQLAndTimeSettings(
       stackTraceDepth = 1
     )
@@ -21,7 +21,7 @@ class AllEndpointSpec extends Suites(
     insertTestUsers()
   }
   override def afterAll() = {
-    println(s"${"=" * 40} shutdown ${"=" * 40}")
+    println(s"${"=" * 30} shutdown endpoint specs ${"=" * 30}")
     deleteTestUsers()
     DBSettings.shutdown()
   }
