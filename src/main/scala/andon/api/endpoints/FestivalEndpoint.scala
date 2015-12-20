@@ -32,7 +32,7 @@ trait FestivalEndpoint extends EndpointBase {
     DB.localTx { implicit s =>
       token.allowedOnly(Right.Admin) { _ =>
         FestivalModel.create(
-          times = fes.times,
+          times = OrdInt(fes.times),
           theme = fes.theme,
           themeKana = fes.theme_kana,
           themeRoman = fes.theme_roman,

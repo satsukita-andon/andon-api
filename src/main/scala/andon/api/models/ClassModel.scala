@@ -1,7 +1,10 @@
 package andon.api.models
 
+import cats.data.Xor
 import scalikejdbc._
+import org.joda.time.DateTime
 
+import andon.api.errors._
 import andon.api.models.generated._
 import andon.api.util.ClassId
 
@@ -42,5 +45,26 @@ trait ClassModel {
       .map { (c, ps, cts) => (c, ps, cts.map(_.label)) }
       .single
       .apply()
+  }
+
+  def create(
+    classId: ClassId,
+    title: String, titleKana: Option[String] = None,
+    description: Option[String] = None, score: Option[BigDecimal] = None,
+    headerImageUrl: Option[String] = None, thumbnailUrl: Option[String] = None
+  )(implicit s: DBSession): Xor[AndonError, Class] = {
+    val now = DateTime.now
+    try {
+      val c = Class.create(
+        times = classId.times.raw, grade = classId.grade, `class` = classId.`class`,
+        title = title, titleKana = titleKana,
+        description = description, score = score,
+        headerImageUrl = headerImageUrl, thumbnailUrl = thumbnailUrl,
+        createdAt = now, updatedAt = now
+      )
+      Xor.right(c)
+    } catch {
+      case e: java.sql.SQLException => Xor.left(Incorrect(e.getMessage))
+    }
   }
 }

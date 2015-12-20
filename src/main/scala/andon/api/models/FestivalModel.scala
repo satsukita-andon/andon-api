@@ -21,14 +21,14 @@ trait FestivalModel {
   }
   def findByTimes(times: OrdInt)(implicit s: DBSession): Option[Festival] = ???
   def create(
-    times: Short,
+    times: OrdInt,
     theme: String,
     themeRoman: String,
     themeKana: String,
     thumbnailUrl: Option[String] = None
   )(implicit session: DBSession): Xor[AndonError, Festival] = try {
     val fes = Festival.create(
-      times = times,
+      times = times.raw,
       theme = theme,
       themeRoman = themeRoman,
       themeKana = themeKana,

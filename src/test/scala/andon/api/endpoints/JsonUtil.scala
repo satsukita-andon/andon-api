@@ -24,11 +24,17 @@ trait JsonUtil {
       throw new UnsupportedOperationException("Unsupported types for (==) operator of TCursor. Please check the type of the right hand side of (==) operator.")
     def ==(n: Int): Boolean = asInt == n
     def ==(s: String): Boolean = asString == s
-    def map[A](f: (Json) => A): Seq[A] = (for {
-      c <- cursor.downArray
-      jsons <- c.rights
-    } yield jsons.map(f))
-      .getOrElse(throw TraceException(s"not array:\n${cursor.focus}"))
+    def first: TCursor = cursor.downArray match {
+      case None => throw TraceException(s"this is not array:\n${cursor.focus}")
+      case Some(c) => new TCursor(c)
+    }
+    def map[A](f: (Json) => A): Seq[A] = {
+      val fc = first.cursor
+      fc.rights match {
+        case None => throw TraceException(s"this is not an element of array :\n${cursor.focus}")
+        case Some(jsons) => (fc.focus :: jsons).map(f)
+      }
+    }
     def focus: Json = cursor.focus
     def asInt: Int = asLong.toInt
     def asLong: Long = asNumber.toLong match {

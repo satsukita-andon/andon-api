@@ -74,6 +74,7 @@ seq(flywaySettings:  _*)
 import com.typesafe.config.ConfigFactory
 
 val conf = ConfigFactory.parseFile(new File("src/main/resources/application.conf"))
+// val conf = ConfigFactory.parseFile(new File("src/test/resources/application.conf"))
 
 flywayUrl := conf.getString("db.default.url")
 
@@ -82,3 +83,5 @@ flywayUser := conf.getString("db.default.user")
 // generate models
 
 scalikejdbcSettings
+
+parallelExecution in Test := false
