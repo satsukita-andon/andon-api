@@ -5,10 +5,11 @@ import scalikejdbc._
 import andon.api.models.generated.{ ClassImage, User }
 import andon.api.util.Paging
 
-object ClassImageModel {
+object ClassImageModel extends ClassImageModel
+trait ClassImageModel {
 
-  val u = User.u
-  val ci = ClassImage.ci
+  private val u = User.u
+  private val ci = ClassImage.ci
 
   def findAll(classId: Short, paging: Paging)(implicit s: DBSession): Seq[(ClassImage, User)] = {
     withSQL {

@@ -5,12 +5,13 @@ import scalikejdbc._
 import andon.api.models.generated._
 import andon.api.util.ClassId
 
-object ClassModel {
+object ClassModel extends ClassModel
+trait ClassModel {
 
-  val c = Class.c
-  val p = Prize.p
-  val cpr = ClassPrizeRel.cpr
-  val ct = ClassTag.ct
+  private val c = Class.c
+  private val p = Prize.p
+  private val cpr = ClassPrizeRel.cpr
+  private val ct = ClassTag.ct
 
   def prizeOpt(p: SyntaxProvider[Prize])(rs: WrappedResultSet): Option[Prize] =
     rs.shortOpt(p.resultName.id).map(_ => Prize(p)(rs))

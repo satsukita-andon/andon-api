@@ -5,6 +5,7 @@ import scalikejdbc._
 import generated.User
 import andon.api.util.PasswordUtil
 
+object UserModel extends UserModel
 trait UserModel {
   // compare by lower case string
   def findByLogin(login: String)(implicit s: DBSession): Option[User] = {
@@ -30,5 +31,3 @@ trait UserModel {
     }
   }
 }
-
-object UserModel extends UserModel

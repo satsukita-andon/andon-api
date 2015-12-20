@@ -7,9 +7,10 @@ import andon.api.errors._
 import andon.api.util._
 import generated.Festival
 
-object FestivalModel {
+object FestivalModel extends FestivalModel
+trait FestivalModel {
 
-  val f = Festival.f
+  private val f = Festival.f
 
   def findAll(order: SortOrder)(implicit s: DBSession): Seq[Festival] = {
     withSQL {

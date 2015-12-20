@@ -8,10 +8,15 @@ import andon.api.errors._
 import andon.api.models.generated.{ ClassArticle, ClassArticleRevision }
 import andon.api.util._
 
-object ClassArticleModel {
+object ClassArticleModel extends ClassArticleModel {
+  protected val ClassModel = andon.api.models.ClassModel
+}
+trait ClassArticleModel {
 
-  val ca = ClassArticle.ca
-  val car = ClassArticleRevision.car
+  protected val ClassModel: ClassModel
+
+  private val ca = ClassArticle.ca
+  private val car = ClassArticleRevision.car
 
   def findAll(classId: Short, paging: Paging)(implicit s: DBSession): Seq[(ClassArticle, ClassArticleRevision)] = {
     withSQL {
