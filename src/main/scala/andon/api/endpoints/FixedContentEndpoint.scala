@@ -16,7 +16,7 @@ trait FixedContentEndpoint extends EndpointBase {
   protected val FixedContentModel: FixedContentModel
 
   val name = "contents" // contents? fixed_contents?
-  def all = findByType
+  def all = findByType :+: findRevisionsByType
 
   def findByType: Endpoint[FixedContent] = get(ver / name / fixedContentType) { typ: FixedContentType =>
     DB.readOnly { implicit s =>
@@ -25,4 +25,20 @@ trait FixedContentEndpoint extends EndpointBase {
       }.getOrElse(NotFound(ResourceNotFound()))
     }
   }
+
+  def findRevisionsByType: Endpoint[Items[FixedContent]] =
+    get(ver / name / fixedContentType / "revisions" ? paging) { (typ: FixedContentType, paging: Paging) =>
+      val p = paging.defaultLimit(20).maxLimit(20).defaultOrder(DESC)
+      DB.readOnly { implicit s =>
+        FixedContentModel.findRevisionsByType(typ, p).map { case (c, rs) =>
+          val count = rs.length.toLong
+          val all = FixedContentModel.countRevisions(c.id)
+          Ok(Items(
+            all_count = all,
+            count = count,
+            items = rs.map(r => FixedContent(c, r))
+          ))
+        }.getOrElse(NotFound(ResourceNotFound()))
+      }
+    }
 }
