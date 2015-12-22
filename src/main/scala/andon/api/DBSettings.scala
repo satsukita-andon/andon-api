@@ -13,12 +13,11 @@ object DBSettings {
   def newDataSource = {
     val conf = ConfigFactory.load()
     val config = new HikariConfig()
-    config.setDataSourceClassName(conf.getString("db.default.dataSource"))
-    config.addDataSourceProperty("serverName", conf.getString("db.default.serverName")) // hostname if you use remote host
-    config.addDataSourceProperty("portNumber", conf.getNumber("db.default.postNumber")) // post if you use remote host
-    config.addDataSourceProperty("databaseName", conf.getString("db.default.databaseName"))
-    config.addDataSourceProperty("user", conf.getString("db.default.user"))
-    config.addDataSourceProperty("password", conf.getString("db.default.password"))
+    config.setJdbcUrl(conf.getString("db.default.url"))
+    config.setDriverClassName(conf.getString("db.default.driver"))
+    config.setUsername(conf.getString("db.default.user"))
+    config.setPassword(conf.getString("db.default.password"))
+    config.addDataSourceProperty("stringtype", "unspecified") // workaround: http://stackoverflow.com/questions/14719207/how-do-you-insert-a-postgres-enum-value-using-clojure-jdbc
     new HikariDataSource(config)
   }
 

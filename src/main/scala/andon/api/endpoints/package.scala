@@ -16,6 +16,7 @@ package object endpoints {
       AuthEndpoint.all :+:
       FestivalEndpoint.all :+:
       ClassEndpoint.all :+:
+      FixedContentEndpoint.all :+:
       notFound
   ).handle {
     case e: TokenRequired => Unauthorized(e)

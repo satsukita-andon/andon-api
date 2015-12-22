@@ -40,4 +40,5 @@ trait EndpointBase {
   object short extends Extractor("short", s => Try(s.toShort).toOption)
   object ordint extends Extractor("ordint", OrdInt.parse)
   object classId extends Extractor("class_id", ClassId.parse)
+  object fixedContentType extends Extractor("type", FixedContentType.from)
 }
