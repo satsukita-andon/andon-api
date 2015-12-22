@@ -7,10 +7,12 @@ import andon.api.util.PasswordUtil
 
 object UserModel extends UserModel
 trait UserModel {
+
   // compare by lower case string
   def findByLogin(login: String)(implicit s: DBSession): Option[User] = {
     User.findBy(SQLSyntax.eq(User.u.login.lower, login.toLowerCase))
   }
+
   def findByAuthInfo(login: String, password: String)(implicit s: DBSession): Option[User] = {
     findByLogin(login).flatMap { user =>
       // 1. try using bcrypt

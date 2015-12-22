@@ -5,8 +5,8 @@
     </encoder>
   </appender>
 
-  <logger name="com.zaxxer.hikari" level="WARN"/>
-  <logger name="scalikejdbc" level="INFO"/>
+  <logger name="com.zaxxer.hikari" level="INFO"/>
+  <logger name="scalikejdbc" level="DEBUG"/>
 
   <root level="debug">
     <appender-ref ref="STDOUT" />
