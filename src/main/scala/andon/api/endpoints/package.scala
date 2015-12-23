@@ -17,6 +17,7 @@ package object endpoints {
       FestivalEndpoint.all :+:
       ClassEndpoint.all :+:
       ClassArticleEndpoint.all :+:
+      ArticleEndpoint.all :+:
       FixedContentEndpoint.all :+:
       notFound
   ).handle {
