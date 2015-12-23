@@ -4,7 +4,8 @@ scala:
 services:
   - postgresql
 addons:
-  postgresql: "9.3"
+  postgresql: "9.4"
 before_script:
+  - psql -c 'create role amutake createdb;' -U postgres
   - psql -c 'create database andon_test;' -U amutake
   - sbt "flywayMigrate"
