@@ -1,6 +1,8 @@
 package andon.api.endpoints
 
 import io.finch._
+import io.finch.circe._
+import io.circe.generic.auto._
 import scalikejdbc.DB
 
 import andon.api.errors._
@@ -16,7 +18,23 @@ trait ArticleEndpoint extends EndpointBase {
   val ArticleModel: ArticleModel
 
   val name = "articles"
-  def all = find :+: findRevisions
+  def all = create :+: find :+: findRevisions
+
+  val create: Endpoint[DetailedArticle] = post(
+    ver / name ? token ? body.as[ArticleCreation]
+  ) { (token: Token, creation: ArticleCreation) =>
+    DB.localTx { implicit s =>
+      token.rejectedOnly(Right.Suspended) { user =>
+        creation.validate.toXor.fold(
+          { nel => BadRequest(ValidationError(nel)) },
+          { creation =>
+            val (article, revision) = ArticleModel.create(user.id, creation)
+            Ok(DetailedArticle(article, user, revision, Some(user)))
+          }
+        )
+      }
+    }
+  }
 
   val find: Endpoint[DetailedArticle] = get(ver / name / int) { articleId: Int =>
     DB.readOnly { implicit s =>

@@ -1,5 +1,7 @@
 package andon.api.models
 
+import andon.api.jsons.ArticleCreation
+import org.joda.time.DateTime
 import scalikejdbc._
 
 import andon.api.models.generated._
@@ -78,5 +80,27 @@ trait ArticleModel {
 
   def countRevisions(articleId: Int)(implicit s: DBSession): Long = {
     ArticleRevision.countBy(SQLSyntax.eq(ar.articleId, articleId))
+  }
+
+  def create(userId: Int, creation: ArticleCreation)(implicit s: DBSession): (Article, ArticleRevision) = {
+    val now = DateTime.now
+    val article = Article.create(
+      ownerId = userId,
+      latestRevisionNumber = 1,
+      status = creation.status.toString,
+      editorialRight = creation.editorial_right.toString,
+      createdAt = now,
+      updatedAt = now
+    )
+    val revision = ArticleRevision.create(
+      articleId = article.id,
+      revisionNumber = 1,
+      userId = Some(userId),
+      title = creation.title,
+      body = creation.body,
+      comment = creation.comment,
+      createdAt = now
+    )
+    (article, revision)
   }
 }

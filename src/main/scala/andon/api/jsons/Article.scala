@@ -1,5 +1,7 @@
 package andon.api.jsons
 
+import andon.api.errors.{Validation, InvalidItem}
+import cats.data.ValidatedNel
 import org.joda.time.DateTime
 
 import andon.api.models.generated.{
@@ -8,6 +10,28 @@ import andon.api.models.generated.{
   User => UserRow
 }
 import andon.api.util._
+
+final case class ArticleCreation(
+  status: PublishingStatus,
+  editorial_right: EditorialRight,
+  editors: Seq[Int],
+  title: String,
+  body: String,
+  comment: String
+) {
+  val validate: ValidatedNel[InvalidItem, ArticleCreation] = {
+    Validation.run(this, Seq(
+      (title.length > 200) -> InvalidItem(
+        field = "title",
+        reason = "`title` must be less than or equal to 200 characters"
+      ),
+      (status == PublishingStatus.Suspended) -> InvalidItem(
+        field = "status",
+        reason = "`status` must not be suspended"
+      )
+    ))
+  }
+}
 
 final case class Article(
   id: Int,
