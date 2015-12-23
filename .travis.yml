@@ -10,4 +10,4 @@ addons:
 before_script:
   - psql -c 'create role amutake createdb login;' -U postgres
   - createdb andon_test -U amutake
-  - sbt "flywayMigrate"
+  - sbt flywayMigrate -Dflyway.url="jdbc:postgresql://localhost/andon_test" -Dflyway.user="amutake"
