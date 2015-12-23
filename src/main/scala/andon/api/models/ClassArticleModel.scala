@@ -5,7 +5,7 @@ import org.joda.time.DateTime
 import scalikejdbc._
 
 import andon.api.errors._
-import andon.api.models.generated.{ ClassArticle, ClassArticleRevision }
+import andon.api.models.generated.{ Class, ClassArticle, ClassArticleRevision }
 import andon.api.util._
 
 object ClassArticleModel extends ClassArticleModel {
@@ -15,8 +15,12 @@ trait ClassArticleModel {
 
   protected val ClassModel: ClassModel
 
+  private val c = Class.c
   private val ca = ClassArticle.ca
   private val car = ClassArticleRevision.car
+
+  private def revisionOpt(r: SyntaxProvider[ClassArticleRevision])(rs: WrappedResultSet): Option[ClassArticleRevision] =
+    rs.shortOpt(r.resultName.id).map(_ => ClassArticleRevision(r)(rs))
 
   def findAll(classId: Short, paging: Paging)(implicit s: DBSession): Seq[(ClassArticle, ClassArticleRevision)] = {
     withSQL {
@@ -44,6 +48,35 @@ trait ClassArticleModel {
   }
   def count(classId: ClassId)(implicit s: DBSession): Long = {
     ClassModel.findId(classId).map(count).getOrElse(0L)
+  }
+
+  def findRevisions(articleId: Int, paging: Paging)(implicit s: DBSession): Option[(ClassArticle, Seq[ClassArticleRevision])] = {
+    withSQL {
+      paging.sql {
+        select.from(ClassArticle as ca)
+          .leftJoin(ClassArticleRevision as car).on(SQLSyntax
+            .eq(ca.id, car.articleId).and
+            .eq(ca.latestRevisionNumber, car.revisionNumber))
+          .where.eq(ca.id, articleId)
+      }
+    }.one(ClassArticle(ca))
+      .toMany(revisionOpt(car))
+      .map((a, rs) => (a, rs))
+      .single.apply()
+  }
+
+  def countRevisions(articleId: Int)(implicit s: DBSession): Long = {
+    ClassArticleRevision.countBy(SQLSyntax.eq(car.articleId, articleId))
+  }
+
+  def findClassId(articleId: Int)(implicit s: DBSession): Option[ClassId] = {
+    withSQL {
+      select.from(ClassArticle as ca)
+        .innerJoin(Class as c).on(ca.classId, c.id)
+        .where.eq(ca.id, articleId)
+    }.map(rs => (rs.short(c.times), rs.short(c.times), rs.short(c.`class`)))
+      .single.apply()
+      .map { case (t, g, c) => ClassId(OrdInt(t), g, c) }
   }
 
   def create(
@@ -76,5 +109,13 @@ trait ClassArticleModel {
     Xor.right((ca, rev))
   } catch {
     case e: java.sql.SQLException => Xor.left(Incorrect(e.getMessage)) // TODO: check exception type
+  }
+
+  def destroy(articleId: Int)(implicit s: DBSession): Boolean = {
+    val n = withSQL {
+      delete.from(ClassArticle as ca)
+        .where.eq(ca.id, articleId)
+    }.update.apply()
+    if (n == 0) false else true
   }
 }

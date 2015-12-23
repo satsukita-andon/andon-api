@@ -12,6 +12,7 @@ object Right {
   // if chief then classmate
   case class ChiefOf(classId: ClassId) extends Right
   case class In(userIds: Set[Int]) extends Right
+  case class Is(userId: Int) extends Right
 
   def has(user: User, right: Right): Boolean = right match {
     case Right.Admin => user.admin
@@ -32,5 +33,6 @@ object Right {
       user.times == t.raw && user.classThird == Some(c) && user.chiefThird == Some(true)
     case Right.ChiefOf(_) => false
     case Right.In(userIds) => userIds.contains(user.id)
+    case Right.Is(userId) => user.id == userId
   }
 }

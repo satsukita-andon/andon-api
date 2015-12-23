@@ -8,6 +8,9 @@ import andon.api.util.PasswordUtil
 object UserModel extends UserModel
 trait UserModel {
 
+  def opt(u: SyntaxProvider[User])(rs: WrappedResultSet): Option[User] =
+    rs.intOpt(u.resultName.id).map(_ => User(u)(rs))
+
   // compare by lower case string
   def findByLogin(login: String)(implicit s: DBSession): Option[User] = {
     User.findBy(SQLSyntax.eq(User.u.login.lower, login.toLowerCase))

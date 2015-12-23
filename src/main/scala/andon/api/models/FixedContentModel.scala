@@ -12,7 +12,7 @@ trait FixedContentModel {
   private val fcr = FixedContentRevision.fcr
 
   def revisionOpt(r: SyntaxProvider[FixedContentRevision])(rs: WrappedResultSet): Option[FixedContentRevision] =
-        rs.shortOpt(r.resultName.id).map(_ => FixedContentRevision(r)(rs))
+    rs.shortOpt(r.resultName.id).map(_ => FixedContentRevision(r)(rs))
 
   def findByType(`type`: FixedContentType)(implicit s: DBSession): Option[(FixedContent, FixedContentRevision)] = {
     withSQL {
