@@ -71,14 +71,9 @@ libraryDependencies ++= {
 
 seq(flywaySettings:  _*)
 
-import com.typesafe.config.ConfigFactory
+flywayUrl := "jdbc:postgresql://localhost/andon" // or andon_test
 
-val conf = ConfigFactory.parseFile(new File("src/main/resources/application.conf"))
-// val conf = ConfigFactory.parseFile(new File("src/test/resources/application.conf"))
-
-flywayUrl := conf.getString("db.default.url")
-
-flywayUser := conf.getString("db.default.user")
+flywayUser := "amutake"
 
 // generate models
 
