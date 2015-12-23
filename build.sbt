@@ -33,15 +33,15 @@ resolvers ++= Seq(
 
 libraryDependencies ++= {
   val twitterServer = "1.16.0"
-  val finch = "0.9.3-SNAPSHOT"
-  val circe = "0.3.0-SNAPSHOT"
+  val finch = "0.9.3"
+  val circe = "0.2.1"
   val scalikejdbc = "2.3.2"
   val postgres = "9.4-1206-jdbc42"
   val hikaricp = "2.4.3"
   val scalatest = "2.2.4"
   val jwt = "0.4.1"
   val joda = "2.9.1"
-  val shapeless = "2.3.0-SHAPSHOT"
+  val shapeless = "2.2.5"
   val cats = "0.3.0"
   val config = "1.3.0"
   Seq(
