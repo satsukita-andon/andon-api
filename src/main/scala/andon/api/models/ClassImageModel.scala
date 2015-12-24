@@ -9,7 +9,7 @@ object ClassImageModel extends ClassImageModel
 trait ClassImageModel {
 
   private val u = User.u
-  private val ci = ClassImage.ci
+  val ci = ClassImage.ci
 
   def findAll(classId: Short, paging: Paging)(implicit s: DBSession): Seq[(ClassImage, User)] = {
     withSQL {
@@ -17,7 +17,6 @@ trait ClassImageModel {
         select.from(ClassImage as ci)
           .innerJoin(User as u).on(ci.userId, u.id)
           .where.eq(ci.classId, classId)
-          .orderBy(ci.id)
       }
     }.one(ClassImage(ci))
       .toOne(User(u))

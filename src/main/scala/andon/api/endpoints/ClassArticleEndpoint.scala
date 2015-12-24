@@ -19,7 +19,7 @@ trait ClassArticleEndpoint extends EndpointBase {
   def all = findRevisions :+: destroy
 
   val findRevisions: Endpoint[Items[ClassArticle]] = get(
-    ver / name / int / "revisions" ? paging
+    ver / name / int / "revisions" ? paging()
   ) { (articleId: Int, paging: Paging) =>
       DB.readOnly { implicit s =>
         ClassArticleModel.findRevisions(articleId, paging).map { case (a, rs) =>

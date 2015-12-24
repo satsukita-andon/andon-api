@@ -16,8 +16,8 @@ trait ClassArticleModel {
   protected val ClassModel: ClassModel
 
   private val c = Class.c
-  private val ca = ClassArticle.ca
-  private val car = ClassArticleRevision.car
+  val ca = ClassArticle.ca
+  val car = ClassArticleRevision.car
 
   private def revisionOpt(r: SyntaxProvider[ClassArticleRevision])(rs: WrappedResultSet): Option[ClassArticleRevision] =
     rs.shortOpt(r.resultName.id).map(_ => ClassArticleRevision(r)(rs))
@@ -31,7 +31,6 @@ trait ClassArticleModel {
             .eq(ca.latestRevisionNumber, car.revisionNumber))
           .where
           .eq(ca.classId, classId)
-          .orderBy(ca.id)
       }
     }.one(ClassArticle(ca))
       .toOne(ClassArticleRevision(car))

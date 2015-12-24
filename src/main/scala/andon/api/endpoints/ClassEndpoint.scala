@@ -33,11 +33,12 @@ trait ClassEndpoint extends EndpointBase {
   }
 
   val findImages: Endpoint[Items[ClassImage]] = get(
-    ver / name / classId / "images" ? paging
+    ver / name / classId / "images" ? paging()
   ) { (classId: ClassId, paging: Paging) =>
     DB.readOnly { implicit s =>
       ClassModel.findId(classId).map { id =>
-        val p = paging.defaultLimit(50).maxLimit(100).defaultOrder(ASC)
+        val p = paging.defaultLimit(50).maxLimit(100)
+          .defaultOrder(ASC).defaultOrderBy(ClassImageModel.ci.createdAt)
         val images = ClassImageModel.findAll(id, p).map { case (i, u) =>
           ClassImage.apply(i, u)
         }
@@ -48,11 +49,11 @@ trait ClassEndpoint extends EndpointBase {
   }
 
   val findArticles: Endpoint[Items[ClassArticle]] = get(
-    ver / name / classId / "articles" ? paging
+    ver / name / classId / "articles" ? paging()
   ) { (classId: ClassId, paging: Paging) =>
     DB.readOnly { implicit s =>
       ClassModel.findId(classId).map { id =>
-        val p = paging.defaultOrder(DESC)
+        val p = paging.defaultOrder(DESC).defaultOrderBy(ClassArticleModel.ca.createdAt)
         val articles = ClassArticleModel.findAll(id, p).map { case (a, r) =>
           ClassArticle(a, r)
         }
@@ -63,8 +64,8 @@ trait ClassEndpoint extends EndpointBase {
   }
 
   val createArticle: Endpoint[DetailedClassArticle] = post(
-    ver / name / classId / "articles" ? body.as[ClassArticleCreation] ? token
-  ) { (classId: ClassId, articleDef: ClassArticleCreation, token: Token) =>
+    ver / name / classId / "articles" ? token ? body.as[ClassArticleCreation]
+  ) { (classId: ClassId, token: Token, articleDef: ClassArticleCreation) =>
     DB.localTx { implicit s =>
       token.allowedOnly(Right.ClassmateOf(classId)) { user =>
         articleDef.validate.toXor.fold(

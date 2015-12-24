@@ -120,9 +120,13 @@ trait ArticleEndpoint extends EndpointBase {
   }
 
   val findAll: Endpoint[Items[Article]] = get(
-    ver / name ? paging
+    ver / name ? paging("created_at", "updated_at")
   ){ (p: Paging) =>
-    val paging = p.defaultLimit(50).maxLimit(100).defaultOrder(DESC)
+    val paging = p.defaultLimit(50).maxLimit(100)
+      .defaultOrder(DESC).defaultOrderBy(ArticleModel.a.createdAt).mapOrderBy {
+      case "created_at" => ArticleModel.a.createdAt
+      case "updated_at" => ArticleModel.a.updatedAt
+    }
     DB.readOnly { implicit s =>
       val articles = ArticleModel.findAll(paging).map { case (a, o, r, u) =>
           Article(a, o, r, u)
@@ -137,9 +141,10 @@ trait ArticleEndpoint extends EndpointBase {
   }
 
   val findRevisions: Endpoint[Items[Article]] = get(
-    ver / name / int / "revisions" ? paging
+    ver / name / int / "revisions" ? paging()
   ) { (articleId: Int, paging: Paging) =>
-      val p = paging.defaultLimit(20).maxLimit(20).defaultOrder(DESC)
+      val p = paging.defaultLimit(20).maxLimit(20)
+        .defaultOrder(DESC).defaultOrderBy(ArticleModel.ar.revisionNumber)
       DB.readOnly { implicit s =>
         ArticleModel.findRevisions(articleId, p).map { case (a, o, rus) =>
           val all = ArticleModel.countRevisions(articleId)

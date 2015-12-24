@@ -10,12 +10,12 @@ import generated.Festival
 object FestivalModel extends FestivalModel
 trait FestivalModel {
 
-  private val f = Festival.f
+  val f = Festival.f
 
-  def findAll(order: SortOrder)(implicit s: DBSession): Seq[Festival] = {
+  def findAll(paging: Paging)(implicit s: DBSession): Seq[Festival] = {
     withSQL {
-      order.sql {
-        select.from(Festival as f).orderBy(f.times)
+      paging.sql {
+        select.from(Festival as f)
       }
     }.map(Festival(f)).list.apply()
   }

@@ -1,5 +1,8 @@
 package andon.api.endpoints
 
+import cats.data.Xor
+import scalikejdbc.interpolation.SQLSyntax
+
 import scala.util.Try
 import io.finch._
 
@@ -26,16 +29,26 @@ trait EndpointBase {
       case Some(token) => RequestReader.value(token)
     }
   }
+  def orderBy(possibles: String*): RequestReader[Option[Xor[String, SQLSyntax]]] = {
+    val p = paramOption("orderby").as[String]
+    if (possibles.isEmpty) {
+      p.map(_ => None)
+    } else {
+      p.should(s"be ${possibles.mkString(" or ")}")(_.map(possibles.contains).getOrElse(true))
+        .map(_.map(Xor.left))
+    }
+  }
   val order: RequestReader[Option[SortOrder]] = paramOption("order").as[String]
     .map(_.map(_.toUpperCase))
     .should("be ASC or DESC")(_.map(SortOrder.images.contains(_)).getOrElse(true))
     .map(_.flatMap(SortOrder.from))
-  val paging: RequestReader[Paging] = (
+  def paging(possibles: String*): RequestReader[Paging] = (
     paramOption("offset").as[Int]
       .should("be non negative")(_.map(_ >= 0).getOrElse(true)) ::
       paramOption("limit").as[Int]
       .should("be non negative")(_.map(_ >= 0).getOrElse(true)) ::
-      order
+      order ::
+      orderBy(possibles: _*)
   ).as[Paging]
   object short extends Extractor("short", s => Try(s.toShort).toOption)
   object ordint extends Extractor("ordint", OrdInt.parse)

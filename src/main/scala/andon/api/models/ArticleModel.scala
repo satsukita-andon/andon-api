@@ -14,9 +14,9 @@ trait ArticleModel {
 
   val UserModel: UserModel
 
-  private val a = Article.a
-  private val ar = ArticleRevision.ar
-  private val aer = ArticleEditorRel.aer
+  val a = Article.a
+  val ar = ArticleRevision.ar
+  val aer = ArticleEditorRel.aer
   private val u = User.u
 
   def revisionOpt(r: SyntaxProvider[ArticleRevision])(rs: WrappedResultSet): Option[ArticleRevision] =
@@ -58,7 +58,6 @@ trait ArticleModel {
       paging.sql {
         select.from(Article as a)
           .innerJoin(User as u).on(u.id, a.ownerId)
-          .orderBy(a.createdAt)
       }
     }.one(Article(a))
       .toOne(User(u))
@@ -101,7 +100,6 @@ trait ArticleModel {
             .leftJoin(User as u).on(u.id, ar.userId)
             .where
             .eq(ar.articleId, articleId)
-            .orderBy(ar.revisionNumber)
         }
       }.one(ArticleRevision(ar))
         .toOne(UserModel.opt(u))
