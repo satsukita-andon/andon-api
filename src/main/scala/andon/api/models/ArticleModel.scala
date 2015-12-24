@@ -89,6 +89,8 @@ trait ArticleModel {
       latestRevisionNumber = 1,
       status = creation.status.toString,
       editorialRight = creation.editorial_right.toString,
+      createdBy = Some(userId),
+      updatedBy = Some(userId),
       createdAt = now,
       updatedAt = now
     )
