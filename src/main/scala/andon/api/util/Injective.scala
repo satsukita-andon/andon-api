@@ -11,6 +11,7 @@ trait Injective[S, T] {
 
   lazy val images = domain.map(to)
   def from(t: T): Option[S] = revdict.get(t)
+  def unsafeFrom(t: T): S = revdict(t)
 
   private lazy val revdict = { // lazy is important!
     if (images.size != domain.size) {

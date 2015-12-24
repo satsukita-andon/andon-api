@@ -35,4 +35,6 @@ trait UserModel {
       }
     }
   }
+
+  def find(userId: Int)(implicit s: DBSession): Option[User] = User.find(userId)
 }

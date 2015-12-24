@@ -16,10 +16,14 @@ trait ArticleModel {
 
   private val a = Article.a
   private val ar = ArticleRevision.ar
+  private val aer = ArticleEditorRel.aer
   private val u = User.u
 
   def revisionOpt(r: SyntaxProvider[ArticleRevision])(rs: WrappedResultSet): Option[ArticleRevision] =
     rs.shortOpt(r.resultName.id).map(_ => ArticleRevision(r)(rs))
+
+  def editorRelOpt(er: SyntaxProvider[ArticleEditorRel])(rs: WrappedResultSet): Option[ArticleEditorRel] =
+    rs.intOpt(er.resultName.id).map(_ => ArticleEditorRel(er)(rs))
 
   def find(articleId: Int)(implicit s: DBSession): Option[(Article, User, ArticleRevision, Option[User])] = {
     // TODO: optimize
@@ -78,6 +82,22 @@ trait ArticleModel {
     }
   }
 
+  def findMeta(articleId: Int)(implicit s: DBSession): Option[(PublishingStatus, EditorialRight, Int, Seq[Int])] = {
+    withSQL {
+      select.from(Article as a)
+        .leftJoin(ArticleEditorRel as aer).on(a.id, aer.articleId)
+        .where
+        .eq(a.id, articleId)
+    }.one(Article(a))
+      .toMany(editorRelOpt(aer))
+      .map((a: Article, es: Seq[ArticleEditorRel]) => (
+        PublishingStatus.unsafeFrom(a.status),
+        EditorialRight.unsafeFrom(a.editorialRight),
+        a.ownerId, es.map(_.userId))
+      )
+      .single.apply()
+  }
+
   def countRevisions(articleId: Int)(implicit s: DBSession): Long = {
     ArticleRevision.countBy(SQLSyntax.eq(ar.articleId, articleId))
   }
@@ -104,5 +124,67 @@ trait ArticleModel {
       createdAt = now
     )
     (article, revision)
+  }
+
+  def updateContent(
+    articleId: Int,
+    userId: Int,
+    title: String,
+    body: String,
+    comment: String
+  )(implicit s: DBSession): Option[(Article, ArticleRevision)] = {
+    val now = DateTime.now
+    Article.find(articleId).map { article =>
+      val updated = article.copy(
+        latestRevisionNumber = (article.latestRevisionNumber + 1).toShort,
+        updatedBy = Some(userId),
+        updatedAt = now
+      ).save()
+      val revision = ArticleRevision.create(
+        articleId = articleId,
+        revisionNumber = updated.latestRevisionNumber,
+        userId = Some(userId),
+        title = title,
+        body = body,
+        comment = comment,
+        createdAt = now
+      )
+      (updated, revision)
+    }
+  }
+
+  def updateMeta(
+    articleId: Int,
+    userId: Int,
+    status: PublishingStatus,
+    editorialRight: EditorialRight,
+    editorIdSet: Set[Int]
+  )(implicit s: DBSession): Option[(Article, Set[Int])] = {
+    val now = DateTime.now
+    Article.find(articleId).map { article =>
+      // update article
+      val updated = article.copy(
+        status = status.toString,
+        editorialRight = editorialRight.toString,
+        updatedBy = Some(userId),
+        updatedAt = now
+      ).save()
+      // prepare editor ids
+      val currentEditorIdSet = ArticleEditorRel.findAllBy(SQLSyntax.eq(aer.articleId, articleId)).map(_.userId).toSet
+      val newEditorIdSet = editorIdSet -- currentEditorIdSet
+      val removeEditorIdSet = currentEditorIdSet -- editorIdSet
+      // insert new editors
+      ArticleEditorRel.batchInsert(
+        newEditorIdSet.toSeq.map { editorId =>
+          ArticleEditorRel(0, articleId, editorId)
+        }
+      )
+      // remove old editors
+      withSQL {
+        delete.from(ArticleEditorRel as aer)
+          .where.in(aer.userId, removeEditorIdSet.toSeq)
+      }.update().apply()
+      (updated, editorIdSet)
+    }
   }
 }

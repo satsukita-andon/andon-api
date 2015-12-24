@@ -18,7 +18,7 @@ trait ArticleEndpoint extends EndpointBase {
   val ArticleModel: ArticleModel
 
   val name = "articles"
-  def all = create :+: find :+: findRevisions
+  def all = create :+: updateContent :+: updateMeta :+: find :+: findRevisions
 
   val create: Endpoint[DetailedArticle] = post(
     ver / name ? token ? body.as[ArticleCreation]
@@ -34,6 +34,81 @@ trait ArticleEndpoint extends EndpointBase {
         )
       }
     }
+  }
+
+  // modify (title, body)
+  val updateContent: Endpoint[DetailedArticle] = put(
+    ver / name / int ? token ? body.as[ArticleContentModification]
+  ) { (articleId: Int, token: Token, modification: ArticleContentModification) =>
+    DB.localTx { implicit s =>
+      // TODO: refactor and optimize
+      def go(user: generated.User): Output[DetailedArticle] = {
+        ArticleModel.updateContent(
+          articleId = articleId,
+          userId = user.id,
+          title = modification.title,
+          body = modification.body,
+          comment = modification.comment
+        ).map { _ =>
+          ArticleModel.find(articleId).map { case (a, o, r, u) =>
+            Ok(DetailedArticle(a, o, r, u))
+          }.getOrElse(NotFound(ResourceNotFound()))
+        }.getOrElse(NotFound(ResourceNotFound()))
+      }
+      ArticleModel.findMeta(articleId).map {
+        case (_, EditorialRight.All, _, _) => token.withUser(go)
+        case (_, EditorialRight.Cohort, ownerId, _) =>
+          UserModel.find(ownerId).map { owner =>
+            token.allowedOnly(Right.CohortOf(owner.times))(go)
+          }.getOrElse(InternalServerError(Unexpected("Owner not found. Please report.")))
+        case (_, EditorialRight.Classmate, ownerId, _) =>
+          UserModel.find(ownerId).map { owner =>
+            token.allowedOnly(ClassId.of(owner).map(Right.ClassmateOf.apply): _*)(go)
+          }.getOrElse(InternalServerError(Unexpected("Owner not found. Please report.")))
+        case (_, EditorialRight.Selected, ownerId, editorIds) =>
+          token.allowedOnly(Right.In((ownerId +: editorIds).toSet))(go)
+      }.getOrElse(NotFound(ResourceNotFound()))
+    }
+  }
+
+  val updateMeta: Endpoint[DetailedArticle] = put(
+    ver / name / int / "meta" ? token ? body.as[ArticleMetaModification]
+  ) { (articleId: Int, token: Token, modification: ArticleMetaModification) =>
+    DB.localTx { implicit s =>
+      ArticleModel.findMeta(articleId).map { case (status, right, ownerId, editorIds) =>
+        token.allowedOnly(Right.Admin, Right.Is(ownerId)) { user =>
+          modification.validate(
+            ArticleMetaModification(
+              status = status,
+              editorial_right = right,
+              editor_ids = editorIds
+            ), user.admin, ownerId == user.id
+          ).toXor.fold(
+          { errors =>
+            BadRequest(ValidationError(errors))
+          }, { modification =>
+            ArticleModel.updateMeta(
+              articleId = articleId,
+              userId = user.id,
+              status = modification.status,
+              editorialRight = modification.editorial_right,
+              editorIdSet = modification.editor_ids.toSet
+            )
+            ArticleModel.find(articleId).map { case (a, o, r, u) =>
+              Ok(DetailedArticle(a, o, r, u))
+            }.getOrElse(NotFound(ResourceNotFound()))
+          }
+          )
+        }
+      }.getOrElse(NotFound(ResourceNotFound()))
+    }
+  }
+
+  // all users (not no logged-in user) can update tags
+  val updateTags: Endpoint[Unit] = put(
+    ver / name / int / "tags" ? token ? body.as[Seq[String]]
+  ) { (articleId: Int, token: Token, tags: Seq[String]) =>
+    Ok(())
   }
 
   val find: Endpoint[DetailedArticle] = get(ver / name / int) { articleId: Int =>

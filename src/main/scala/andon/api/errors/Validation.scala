@@ -16,8 +16,9 @@ object Validation {
   def run[A](zero: A, checks: Seq[(Boolean, InvalidItem)]): ValidatedNel[InvalidItem, A] = {
     val ok = Validated.valid[NonEmptyList[InvalidItem], A](zero)
     checks.foldRight(ok) { (a, b) =>
-      if (a._1) {
-        Validated.invalidNel(a._2) *> b
+      val (pred, report) = a
+      if (pred) {
+        Validated.invalidNel(report) *> b
       } else {
         b
       }

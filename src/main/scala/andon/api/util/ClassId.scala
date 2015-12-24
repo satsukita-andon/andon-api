@@ -11,6 +11,7 @@ final case class ClassId(
 }
 
 object ClassId {
+
   def parse(str: String): Option[ClassId] = {
     val r = """(\d+(st|nd|rd|th))(\d)-(-?\d\d?)""".r
     str match {
@@ -21,5 +22,13 @@ object ClassId {
       } yield ClassId(times, grade, clazz)
       case _ => None
     }
+  }
+
+  def of(user: andon.api.models.generated.User): Seq[ClassId] = {
+    val times = OrdInt(user.times)
+    val first = user.classFirst.map(ClassId(times, 1, _))
+    val second = user.classSecond.map(ClassId(times, 2, _))
+    val third = user.classThird.map(ClassId(times, 3, _))
+    Seq(first, second, third).flatten
   }
 }
