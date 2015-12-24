@@ -9,6 +9,8 @@ case class Article(
   latestRevisionNumber: Short,
   status: String,
   editorialRight: String,
+  createdBy: Option[Int] = None,
+  updatedBy: Option[Int] = None,
   createdAt: DateTime,
   updatedAt: DateTime) {
 
@@ -23,7 +25,7 @@ object Article extends SQLSyntaxSupport[Article] {
 
   override val tableName = "articles"
 
-  override val columns = Seq("id", "owner_id", "latest_revision_number", "status", "editorial_right", "created_at", "updated_at")
+  override val columns = Seq("id", "owner_id", "latest_revision_number", "status", "editorial_right", "created_by", "updated_by", "created_at", "updated_at")
 
   def apply(a: SyntaxProvider[Article])(rs: WrappedResultSet): Article = apply(a.resultName)(rs)
   def apply(a: ResultName[Article])(rs: WrappedResultSet): Article = new Article(
@@ -32,6 +34,8 @@ object Article extends SQLSyntaxSupport[Article] {
     latestRevisionNumber = rs.get(a.latestRevisionNumber),
     status = rs.get(a.status),
     editorialRight = rs.get(a.editorialRight),
+    createdBy = rs.get(a.createdBy),
+    updatedBy = rs.get(a.updatedBy),
     createdAt = rs.get(a.createdAt),
     updatedAt = rs.get(a.updatedAt)
   )
@@ -77,6 +81,8 @@ object Article extends SQLSyntaxSupport[Article] {
     latestRevisionNumber: Short,
     status: String,
     editorialRight: String,
+    createdBy: Option[Int] = None,
+    updatedBy: Option[Int] = None,
     createdAt: DateTime,
     updatedAt: DateTime)(implicit session: DBSession): Article = {
     val generatedKey = withSQL {
@@ -85,6 +91,8 @@ object Article extends SQLSyntaxSupport[Article] {
         column.latestRevisionNumber,
         column.status,
         column.editorialRight,
+        column.createdBy,
+        column.updatedBy,
         column.createdAt,
         column.updatedAt
       ).values(
@@ -92,6 +100,8 @@ object Article extends SQLSyntaxSupport[Article] {
         latestRevisionNumber,
         status,
         editorialRight,
+        createdBy,
+        updatedBy,
         createdAt,
         updatedAt
       )
@@ -103,6 +113,8 @@ object Article extends SQLSyntaxSupport[Article] {
       latestRevisionNumber = latestRevisionNumber,
       status = status,
       editorialRight = editorialRight,
+      createdBy = createdBy,
+      updatedBy = updatedBy,
       createdAt = createdAt,
       updatedAt = updatedAt)
   }
@@ -114,6 +126,8 @@ object Article extends SQLSyntaxSupport[Article] {
         'latestRevisionNumber -> entity.latestRevisionNumber,
         'status -> entity.status,
         'editorialRight -> entity.editorialRight,
+        'createdBy -> entity.createdBy,
+        'updatedBy -> entity.updatedBy,
         'createdAt -> entity.createdAt,
         'updatedAt -> entity.updatedAt))
         SQL("""insert into articles(
@@ -121,6 +135,8 @@ object Article extends SQLSyntaxSupport[Article] {
         latest_revision_number,
         status,
         editorial_right,
+        created_by,
+        updated_by,
         created_at,
         updated_at
       ) values (
@@ -128,6 +144,8 @@ object Article extends SQLSyntaxSupport[Article] {
         {latestRevisionNumber},
         {status},
         {editorialRight},
+        {createdBy},
+        {updatedBy},
         {createdAt},
         {updatedAt}
       )""").batchByName(params: _*).apply()
@@ -141,6 +159,8 @@ object Article extends SQLSyntaxSupport[Article] {
         column.latestRevisionNumber -> entity.latestRevisionNumber,
         column.status -> entity.status,
         column.editorialRight -> entity.editorialRight,
+        column.createdBy -> entity.createdBy,
+        column.updatedBy -> entity.updatedBy,
         column.createdAt -> entity.createdAt,
         column.updatedAt -> entity.updatedAt
       ).where.eq(column.id, entity.id)
