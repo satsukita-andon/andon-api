@@ -19,7 +19,11 @@ trait FestivalModel {
       }
     }.map(Festival(f)).list.apply()
   }
+
   def findByTimes(times: OrdInt)(implicit s: DBSession): Option[Festival] = ???
+
+  def countAll(implicit s: DBSession): Long = Festival.countAll()
+
   def create(
     times: OrdInt,
     theme: String,

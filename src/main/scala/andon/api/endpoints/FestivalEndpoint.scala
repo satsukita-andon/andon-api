@@ -6,7 +6,7 @@ import io.circe.generic.auto._
 import scalikejdbc.DB
 
 // import andon.api.errors._
-import andon.api.jsons.{ Festival, FestivalCreation }
+import andon.api.jsons.{Items, Festival, FestivalCreation}
 import andon.api.models.FestivalModel
 import andon.api.util._
 
@@ -20,11 +20,16 @@ trait FestivalEndpoint extends EndpointBase {
   val name = "festivals"
   def all = findAll :+: create
 
-  val findAll: Endpoint[Seq[Festival]] = get(ver / name ? paging()) { (p: Paging) =>
+  val findAll: Endpoint[Items[Festival]] = get(ver / name ? paging()) { (p: Paging) =>
     DB.readOnly { implicit s =>
       val paging = p.defaultOrderBy(FestivalModel.f.times).defaultOrder(DESC)
       val fs = FestivalModel.findAll(paging).map(Festival.apply) // Descending
-      Ok(fs)
+      val all = FestivalModel.countAll
+      Ok(Items(
+        count = fs.length.toLong,
+        all_count = all,
+        items = fs
+      ))
     }
   }
 
