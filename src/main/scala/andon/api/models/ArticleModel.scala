@@ -42,12 +42,41 @@ trait ArticleModel {
         select.from(ArticleRevision as ar)
           .leftJoin(User as u).on(u.id, ar.userId)
           .where
-          .eq(ar.articleId, articleId)
+          .eq(ar.articleId, a.id).and
+          .eq(ar.revisionNumber, a.latestRevisionNumber)
       }.one(ArticleRevision(ar))
-        .toOptionalOne(UserModel.opt(u))
-        .map((r, u) => (r, Option(u)))
+        .toOne(UserModel.opt(u))
+        .map((r, u) => (r, u))
         .single.apply()
       ru.map { case (r, u) => (a, o, r, u) }
+    }
+  }
+
+  def findAll(paging: Paging)(implicit s: DBSession): Seq[(Article, User, ArticleRevision, Option[User])] = {
+    // TODO: optimize
+    val aos = withSQL {
+      paging.sql {
+        select.from(Article as a)
+          .innerJoin(User as u).on(u.id, a.ownerId)
+          .orderBy(a.createdAt)
+      }
+    }.one(Article(a))
+      .toOne(User(u))
+      .map((a, o) => (a, o))
+      .list.apply()
+
+    aos.map { case (a, o) =>
+      val ru = withSQL {
+        select.from(ArticleRevision as ar)
+          .leftJoin(User as u).on(u.id, ar.userId)
+          .where
+          .eq(ar.articleId, a.id).and
+          .eq(ar.revisionNumber, a.latestRevisionNumber)
+      }.one(ArticleRevision(ar))
+        .toOne(UserModel.opt(u))
+        .map((r, u) => (r, u))
+        .single.apply()
+      ru.map { case (r, u) => (a, o, r, u) }.get // not cause error
     }
   }
 
@@ -96,6 +125,10 @@ trait ArticleModel {
         a.ownerId, es.map(_.userId))
       )
       .single.apply()
+  }
+
+  def countAll(implicit s: DBSession): Long = {
+    Article.countAll()
   }
 
   def countRevisions(articleId: Int)(implicit s: DBSession): Long = {

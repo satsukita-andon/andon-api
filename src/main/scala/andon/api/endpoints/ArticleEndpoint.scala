@@ -18,7 +18,7 @@ trait ArticleEndpoint extends EndpointBase {
   val ArticleModel: ArticleModel
 
   val name = "articles"
-  def all = create :+: updateContent :+: updateMeta :+: find :+: findRevisions
+  def all = create :+: updateContent :+: updateMeta :+: find :+: findAll :+: findRevisions
 
   val create: Endpoint[DetailedArticle] = post(
     ver / name ? token ? body.as[ArticleCreation]
@@ -116,6 +116,23 @@ trait ArticleEndpoint extends EndpointBase {
       ArticleModel.find(articleId).map { case (a, o, r, u) =>
         Ok(DetailedArticle(a, o, r, u))
       }.getOrElse(NotFound(ResourceNotFound()))
+    }
+  }
+
+  val findAll: Endpoint[Items[Article]] = get(
+    ver / name ? paging
+  ){ (p: Paging) =>
+    val paging = p.defaultLimit(50).maxLimit(100).defaultOrder(DESC)
+    DB.readOnly { implicit s =>
+      val articles = ArticleModel.findAll(paging).map { case (a, o, r, u) =>
+          Article(a, o, r, u)
+      }
+      val all = ArticleModel.countAll
+      Ok(Items(
+        count = articles.length.toLong,
+        all_count = all,
+        items = articles
+      ))
     }
   }
 
