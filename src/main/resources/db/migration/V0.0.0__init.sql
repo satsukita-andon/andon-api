@@ -212,6 +212,8 @@ create table articles (
   latest_revision_number smallint not null,
   status publishing_status not null,
   editorial_right editorial_right not null,
+  created_by integer references users (id) on delete set null,
+  updated_by integer references users (id) on delete set null,
   created_at timestamptz not null,
   updated_at timestamptz not null
 );
@@ -262,6 +264,8 @@ create table resources (
   status publishing_status not null,
   owner_id integer not null references users (id) on delete cascade,
   editorial_right editorial_right not null,
+  created_by integer references users (id) on delete set null,
+  updated_by integer references users (id) on delete set null,
   created_at timestamp not null,
   updated_at timestamp not null
 );
@@ -312,6 +316,8 @@ create table news (
   owner_id integer not null references users (id) on delete cascade,
   latest_revision_number smallint not null,
   status publishing_status not null,
+  created_by integer references users (id) on delete set null,
+  updated_by integer references users (id) on delete set null,
   created_at timestamptz not null,
   updated_at timestamptz not null
 );
