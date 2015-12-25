@@ -33,7 +33,7 @@ object Validation {
 
   val emailValidator = {
     val allowLocal = false
-    new EmailValidator(allowLocal)
+    EmailValidator.getInstance(allowLocal)
   }
 
   def url(s: String): Boolean = urlValidator.isValid(s)

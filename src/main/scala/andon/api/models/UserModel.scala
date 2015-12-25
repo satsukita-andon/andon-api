@@ -78,9 +78,42 @@ trait UserModel {
     )
   }
 
+  def update(
+    userId: Int,
+    login: String,
+    name: String,
+    biography: Option[String] = None,
+    classFirst: Option[Short] = None,
+    classSecond: Option[Short] = None,
+    classThird: Option[Short] = None,
+    chiefFirst: Option[Boolean] = None,
+    chiefSecond: Option[Boolean] = None,
+    chiefThird: Option[Boolean] = None,
+    iconUrl: Option[String] = None,
+    email: Option[String] = None
+  )(implicit s: DBSession): Option[User] = {
+    User.find(userId).map { user =>
+      user.copy(
+        login = login,
+        name = name,
+        biography = biography,
+        classFirst = classFirst,
+        classSecond = classSecond,
+        classThird = classThird,
+        chiefFirst = chiefFirst,
+        chiefSecond = chiefSecond,
+        chiefThird = chiefThird,
+        iconUrl = iconUrl,
+        email = email
+      ).save()
+    }
+  }
+
   def updateAuthority(login: String, admin: Boolean, suspended: Boolean)(implicit s: DBSession): Option[User] = {
     findByLogin(login).map { user =>
-      user.copy(admin = admin, suspended = suspended).save()
+      val now = DateTime.now
+      user.copy(admin = admin, suspended = suspended, updatedAt = now).save()
     }
   }
 }
+

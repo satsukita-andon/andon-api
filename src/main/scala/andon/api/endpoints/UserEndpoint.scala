@@ -20,7 +20,7 @@ trait UserEndpoint extends EndpointBase {
   protected val ClassModel: ClassModel
 
   val name = "users"
-  def all = findByLogin :+: findAll :+: create :+: updateAuthority
+  def all = findByLogin :+: findAll :+: create :+: update :+: updateAuthority
 
   private def getClass(t: Short, g: Short, c: Option[Short])(implicit s: DBSession) = {
     c.flatMap { c =>
@@ -71,6 +71,37 @@ trait UserEndpoint extends EndpointBase {
             times = OrdInt(creation.times)
           )
           Ok(DetailedUserWithToken(toDetailed(user)))
+        }
+      )
+    }
+  }
+
+  val update: Endpoint[DetailedUser] = put(
+    ver ? token ? body.as[UserModification]
+  ) { (token: Token, modification: UserModification) =>
+    DB.localTx { implicit s =>
+      val logins = UserModel.findAllLogin
+      modification.validate(logins).toXor.fold(
+        errors => BadRequest(ValidationError(errors)),
+        modification => {
+          token.withUser { user =>
+            UserModel.update(
+              userId = user.id,
+              login = modification.login,
+              name = modification.name,
+              biography = modification.biography,
+              classFirst = modification.class_first,
+              classSecond = modification.class_second,
+              classThird = modification.class_third,
+              chiefFirst = modification.chief_first,
+              chiefSecond = modification.chief_second,
+              chiefThird = modification.chief_third,
+              iconUrl = modification.icon_url,
+              email = modification.email
+            ).map { updated =>
+              Ok(toDetailed(updated))
+            }.getOrElse(NotFound(ResourceNotFound()))
+          }
         }
       )
     }

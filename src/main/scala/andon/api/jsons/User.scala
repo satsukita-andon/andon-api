@@ -57,7 +57,7 @@ final case class UserModification(
   icon_url: Option[String],
   email: Option[String]
 ) {
-  def validate(logins: Seq[String]: ValidatedNel[InvalidItem, UserModification] = {
+  def validate(logins: Seq[String]): ValidatedNel[InvalidItem, UserModification] = {
     Validation.run(this, Seq(
       logins.contains(login) -> InvalidItem(
         field = "login",
