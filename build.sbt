@@ -44,6 +44,7 @@ libraryDependencies ++= {
   val shapeless = "2.2.5"
   val cats = "0.3.0"
   val config = "1.3.0"
+  val commonsValidator = "1.5.0"
   Seq(
     "com.twitter" %% "twitter-server" % twitterServer,
     "com.github.finagle" %% "finch-core" % finch,
@@ -63,7 +64,8 @@ libraryDependencies ++= {
     "com.chuusai" %% "shapeless" % shapeless,
     "org.spire-math" %% "cats" % cats,
     "com.typesafe" % "config" % config,
-    "com.github.jeremyh" % "jBCrypt" % "jbcrypt-0.4"
+    "com.github.jeremyh" % "jBCrypt" % "jbcrypt-0.4",
+    "commons-validator" % "commons-validator" % commonsValidator
   )
 }
 

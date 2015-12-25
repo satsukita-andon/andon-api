@@ -19,7 +19,7 @@ final case class UserCreation(
 ) {
   def validate(logins: Seq[String], timesUpper: OrdInt): ValidatedNel[InvalidItem, UserCreation] = {
     Validation.run(this, Seq(
-      (logins.contains(login)) -> InvalidItem(
+      logins.contains(login) -> InvalidItem(
         field = "login",
         reason = "`login` must be unique"
       ),
@@ -33,7 +33,7 @@ final case class UserCreation(
       ),
       (times <= 0 || timesUpper.raw < times) -> InvalidItem(
         field = "times",
-        reason = s"`times` must be within 1 <= times <= ${timesUpper}"
+        reason = s"`times` must be within 1 <= times <= ${timesUpper.raw}"
       )
     ))
   }
@@ -43,6 +43,45 @@ final case class UserAuthorityModification(
   admin: Boolean,
   suspended: Boolean
 )
+
+final case class UserModification(
+  login: String,
+  name: String,
+  biography: Option[String],
+  class_first: Option[Short],
+  class_second: Option[Short],
+  class_third: Option[Short],
+  chief_first: Option[Boolean],
+  chief_second: Option[Boolean],
+  chief_third: Option[Boolean],
+  icon_url: Option[String],
+  email: Option[String]
+) {
+  def validate(logins: Seq[String]: ValidatedNel[InvalidItem, UserModification] = {
+    Validation.run(this, Seq(
+      logins.contains(login) -> InvalidItem(
+        field = "login",
+        reason = "`login` must be unique"
+      ),
+      (login.length > 30) -> InvalidItem(
+        field = "login",
+        reason = "`login` length must be less than or equal to 30 characters"
+      ),
+      (name.length > 30) -> InvalidItem(
+        field = "name",
+        reason = "`name` length must be less than or equal to 30 characters"
+      ),
+      icon_url.map(Validation.url).getOrElse(true) -> InvalidItem(
+        field = "icon_url",
+        reason = "`icon_url` must be valid url"
+      ),
+      email.map(Validation.email).getOrElse(true) -> InvalidItem(
+        field = "email",
+        reason = "`email` must be valid email"
+      )
+    ))
+  }
+}
 
 final case class User(
   id: Int,

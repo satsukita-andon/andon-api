@@ -4,6 +4,7 @@ import cats._
 import cats.data._
 import cats.std.all._
 import cats.syntax.apply._
+import org.apache.commons.validator.routines.{EmailValidator, UrlValidator}
 
 final case class InvalidItem(field: String, reason: String)
 object InvalidItem {
@@ -24,4 +25,18 @@ object Validation {
       }
     }
   }
+
+  val urlValidator = {
+    val schemes = Array("http", "https")
+    new UrlValidator(schemes)
+  }
+
+  val emailValidator = {
+    val allowLocal = false
+    new EmailValidator(allowLocal)
+  }
+
+  def url(s: String): Boolean = urlValidator.isValid(s)
+
+  def email(s: String): Boolean = emailValidator.isValid(s)
 }
