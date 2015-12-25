@@ -7,8 +7,8 @@ object SatsukitaInfo {
   def activeTimes: Seq[OrdInt] = {
     Seq(firstGradeTimes, secondGradeTimes, thirdGradeTimes)
   }
-  def firstGradeTimes = OrdInt((times.raw - 2).toShort)
-  def secondGradeTimes = OrdInt((times.raw - 1).toShort)
+  def firstGradeTimes = OrdInt((times.raw + 2).toShort)
+  def secondGradeTimes = OrdInt((times.raw + 1).toShort)
   def thirdGradeTimes = times
   def times = timesFromDateTime(DateTime.now)
   def timesFromDateTime(dt: DateTime): OrdInt = {
