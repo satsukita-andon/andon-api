@@ -1,9 +1,10 @@
 package andon.api.models
 
+import org.joda.time.DateTime
 import scalikejdbc._
 
 import generated.User
-import andon.api.util.{Paging, PasswordUtil}
+import andon.api.util.{OrdInt, Paging, PasswordUtil}
 
 object UserModel extends UserModel
 trait UserModel {
@@ -49,7 +50,33 @@ trait UserModel {
       .list.apply()
   }
 
+  def findAllLogin(implicit s: DBSession): Seq[String] = {
+    withSQL {
+      select(u.login).from(User as u)
+    }.map(_.string(0)).list.apply()
+  }
+
   def countAll(implicit s: DBSession): Long = User.countAll()
+
+  def create(
+    login: String,
+    password: String,
+    name: String,
+    times: OrdInt
+  )(implicit s: DBSession): User = {
+    val encrypted = PasswordUtil.encrypt(password)
+    val now = DateTime.now
+    User.create(
+      login = login,
+      password = encrypted,
+      name = name,
+      times = times.raw,
+      admin = false,
+      suspended = false,
+      createdAt = now,
+      updatedAt = now
+    )
+  }
 
   def updateAuthority(login: String, admin: Boolean, suspended: Boolean)(implicit s: DBSession): Option[User] = {
     findByLogin(login).map { user =>

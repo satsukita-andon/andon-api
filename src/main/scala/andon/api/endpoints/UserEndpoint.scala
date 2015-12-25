@@ -20,7 +20,7 @@ trait UserEndpoint extends EndpointBase {
   protected val ClassModel: ClassModel
 
   val name = "users"
-  def all = findByLogin :+: findAll :+: updateAuthority
+  def all = findByLogin :+: findAll :+: create :+: updateAuthority
 
   private def getClass(t: Short, g: Short, c: Option[Short])(implicit s: DBSession) = {
     c.flatMap { c =>
@@ -54,6 +54,25 @@ trait UserEndpoint extends EndpointBase {
         all_count = all,
         items = users
       ))
+    }
+  }
+
+  val create: Endpoint[DetailedUser] = post(ver / name ? body.as[UserCreation]) { creation: UserCreation =>
+    DB.localTx { implicit s =>
+      val logins = UserModel.findAllLogin
+      val upper = SatsukitaInfo.firstGradeTimes
+      creation.validate(logins, upper).toXor.fold(
+        errors => BadRequest(ValidationError(errors)),
+        creation => {
+          val user = UserModel.create(
+            login = creation.login,
+            password = creation.password,
+            name = creation.name,
+            times = OrdInt(creation.times)
+          )
+          Ok(toDetailed(user))
+        }
+      )
     }
   }
 

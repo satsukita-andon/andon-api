@@ -1,5 +1,7 @@
 package andon.api.jsons
 
+import andon.api.errors.{Validation, InvalidItem}
+import cats.data.ValidatedNel
 import org.joda.time.DateTime
 
 import andon.api.models.generated.{
@@ -8,6 +10,34 @@ import andon.api.models.generated.{
   Prize => PrizeRow
 }
 import andon.api.util.OrdInt
+
+final case class UserCreation(
+  login: String,
+  password: String,
+  name: String,
+  times: Short
+) {
+  def validate(logins: Seq[String], timesUpper: OrdInt): ValidatedNel[InvalidItem, UserCreation] = {
+    Validation.run(this, Seq(
+      (logins.contains(login)) -> InvalidItem(
+        field = "login",
+        reason = "`login` must be unique"
+      ),
+      (login.length > 30) -> InvalidItem(
+        field = "login",
+        reason = "`login` length must be less than or equal to 30 characters"
+      ),
+      (name.length > 30) -> InvalidItem(
+        field = "name",
+        reason = "`name` length must be less than or equal to 30 characters"
+      ),
+      (times <= 0 || timesUpper.raw < times) -> InvalidItem(
+        field = "times",
+        reason = s"`times` must be within 1 <= times <= ${timesUpper}"
+      )
+    ))
+  }
+}
 
 final case class UserAuthorityModification(
   admin: Boolean,
