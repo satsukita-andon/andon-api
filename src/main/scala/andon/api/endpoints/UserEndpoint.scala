@@ -18,7 +18,7 @@ trait UserEndpoint extends EndpointBase {
   protected val ClassModel: ClassModel
 
   val name = "users"
-  def all = findByLogin
+  def all = findByLogin :+: findAll
 
   private def getClass(t: Short, g: Short, c: Option[Short])(implicit s: DBSession) = {
     c.flatMap { c =>
@@ -34,6 +34,20 @@ trait UserEndpoint extends EndpointBase {
         val third = getClass(user.times, 3, user.classThird)
         Ok(DetailedUser(user, first, second, third))
       }.getOrElse(NotFound(ResourceNotFound()))
+    }
+  }
+
+  val findAll: Endpoint[Items[User]] = get(ver / name ? paging()) { paging: Paging =>
+    DB.readOnly { implicit s =>
+      val p = paging.defaultLimit(50).maxLimit(100)
+        .defaultOrderBy(UserModel.u.id).defaultOrder(ASC)
+      val users = UserModel.findAll(p).map(User.apply)
+      val all = UserModel.countAll
+      Ok(Items(
+        count = users.length.toLong,
+        all_count = all,
+        items = users
+      ))
     }
   }
 }

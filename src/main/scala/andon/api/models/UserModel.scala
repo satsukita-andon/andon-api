@@ -3,10 +3,12 @@ package andon.api.models
 import scalikejdbc._
 
 import generated.User
-import andon.api.util.PasswordUtil
+import andon.api.util.{Paging, PasswordUtil}
 
 object UserModel extends UserModel
 trait UserModel {
+
+  val u = User.u
 
   def opt(u: SyntaxProvider[User])(rs: WrappedResultSet): Option[User] =
     rs.intOpt(u.resultName.id).map(_ => User(u)(rs))
@@ -37,4 +39,15 @@ trait UserModel {
   }
 
   def find(userId: Int)(implicit s: DBSession): Option[User] = User.find(userId)
+
+  def findAll(paging: Paging)(implicit s: DBSession): Seq[User] = {
+    withSQL {
+      paging.sql {
+        select.from(User as u)
+      }
+    }.map(User(u))
+      .list.apply()
+  }
+
+  def countAll(implicit s: DBSession): Long = User.countAll()
 }
