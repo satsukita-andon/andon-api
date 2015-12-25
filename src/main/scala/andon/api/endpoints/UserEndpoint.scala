@@ -57,7 +57,7 @@ trait UserEndpoint extends EndpointBase {
     }
   }
 
-  val create: Endpoint[DetailedUser] = post(ver / name ? body.as[UserCreation]) { creation: UserCreation =>
+  val create: Endpoint[DetailedUserWithToken] = post(ver / name ? body.as[UserCreation]) { creation: UserCreation =>
     DB.localTx { implicit s =>
       val logins = UserModel.findAllLogin
       val upper = SatsukitaInfo.firstGradeTimes
@@ -70,7 +70,7 @@ trait UserEndpoint extends EndpointBase {
             name = creation.name,
             times = OrdInt(creation.times)
           )
-          Ok(toDetailed(user))
+          Ok(DetailedUserWithToken(toDetailed(user)))
         }
       )
     }

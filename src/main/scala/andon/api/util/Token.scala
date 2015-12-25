@@ -13,6 +13,9 @@ import andon.api.models.generated.User
 final case class Token(
   userId: Int
 ) {
+
+  def encode: String = Token.encode(this)
+
   // The reason why getting user from DB (not including info in token) for each time is that,
   // access-rights might be changed
   def allowedOnly[A](rights: Right*)(f: User => Output[A])(implicit s: DBSession) = {

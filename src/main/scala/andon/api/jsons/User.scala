@@ -9,7 +9,7 @@ import andon.api.models.generated.{
   Class => ClassRow,
   Prize => PrizeRow
 }
-import andon.api.util.OrdInt
+import andon.api.util.{Token, OrdInt}
 
 final case class UserCreation(
   login: String,
@@ -111,4 +111,16 @@ object DetailedUser {
     created_at = user.createdAt,
     updated_at = user.updatedAt
   )
+}
+
+final case class DetailedUserWithToken(
+  token: String,
+  user: DetailedUser
+)
+
+object DetailedUserWithToken {
+  def apply(user: DetailedUser): DetailedUserWithToken = {
+    val token = Token(userId = user.id).encode
+    DetailedUserWithToken(token = token, user = user)
+  }
 }

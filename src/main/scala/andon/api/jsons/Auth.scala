@@ -11,6 +11,6 @@ object EncodedToken {
     val token = Token(
       userId = user.id
     )
-    EncodedToken(Token.encode(token))
+    EncodedToken(token.encode)
   }
 }
