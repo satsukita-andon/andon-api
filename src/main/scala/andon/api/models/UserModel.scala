@@ -50,4 +50,10 @@ trait UserModel {
   }
 
   def countAll(implicit s: DBSession): Long = User.countAll()
+
+  def updateAuthority(login: String, admin: Boolean, suspended: Boolean)(implicit s: DBSession): Option[User] = {
+    findByLogin(login).map { user =>
+      user.copy(admin = admin, suspended = suspended).save()
+    }
+  }
 }

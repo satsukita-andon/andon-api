@@ -9,6 +9,11 @@ import andon.api.models.generated.{
 }
 import andon.api.util.OrdInt
 
+final case class UserAuthorityModification(
+  admin: Boolean,
+  suspended: Boolean
+)
+
 final case class User(
   id: Int,
   login: String,

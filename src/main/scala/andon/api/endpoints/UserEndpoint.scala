@@ -1,6 +1,8 @@
 package andon.api.endpoints
 
 import io.finch._
+import io.finch.circe._
+import io.circe.generic.auto._
 import scalikejdbc._
 
 import andon.api.errors._
@@ -18,7 +20,7 @@ trait UserEndpoint extends EndpointBase {
   protected val ClassModel: ClassModel
 
   val name = "users"
-  def all = findByLogin :+: findAll
+  def all = findByLogin :+: findAll :+: updateAuthority
 
   private def getClass(t: Short, g: Short, c: Option[Short])(implicit s: DBSession) = {
     c.flatMap { c =>
@@ -26,13 +28,17 @@ trait UserEndpoint extends EndpointBase {
     }
   }
 
+  private def toDetailed(user: generated.User)(implicit s: DBSession) = {
+    val first = getClass((user.times - 2).toShort, 1, user.classFirst)
+    val second = getClass((user.times - 1).toShort, 2, user.classSecond)
+    val third = getClass(user.times, 3, user.classThird)
+    DetailedUser(user, first, second, third)
+  }
+
   val findByLogin: Endpoint[DetailedUser] = get(ver / name / string("login")) { login: String =>
     DB.readOnly { implicit s =>
       UserModel.findByLogin(login).map { user =>
-        val first = getClass((user.times - 2).toShort, 1, user.classFirst)
-        val second = getClass((user.times - 1).toShort, 2, user.classSecond)
-        val third = getClass(user.times, 3, user.classThird)
-        Ok(DetailedUser(user, first, second, third))
+        Ok(toDetailed(user))
       }.getOrElse(NotFound(ResourceNotFound()))
     }
   }
@@ -48,6 +54,22 @@ trait UserEndpoint extends EndpointBase {
         all_count = all,
         items = users
       ))
+    }
+  }
+
+  val updateAuthority: Endpoint[DetailedUser] = put(
+    ver / name / string("login") / "authority" ? token ? body.as[UserAuthorityModification]
+  ) { (login: String, token: Token, modification: UserAuthorityModification) =>
+    DB.localTx { implicit s =>
+      token.allowedOnly(Right.Admin) { user =>
+        UserModel.updateAuthority(
+          login = login,
+          admin = modification.admin,
+          suspended = modification.suspended
+        ).map { updated =>
+          Ok(toDetailed(updated))
+        }.getOrElse(NotFound(ResourceNotFound()))
+      }
     }
   }
 }
