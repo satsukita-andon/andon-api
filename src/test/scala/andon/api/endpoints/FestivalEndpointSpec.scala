@@ -20,8 +20,8 @@ class FestivalEndpointSpec extends AndonServiceSuite with AndonUtil with JsonUti
       val res = f(req)
       assert(res.statusCode == 200)
       val json = parse(res.contentString).toOption.get
-      assert(json.t ? { _.t / "times" == 60 } / "theme" == "瞬")
-      assert(json.t.map { _.t / "times" asLong } == Seq(62, 61, 60), "default order should be DESC")
+      assert(json.t./("items").? { _.t / "times" == 60 } / "theme" == "瞬")
+      assert(json.t./("items").map { _.t / "times" asLong } == Seq(62, 61, 60), "default order should be DESC")
     }
   }
 
@@ -35,7 +35,7 @@ class FestivalEndpointSpec extends AndonServiceSuite with AndonUtil with JsonUti
       val res = f(req)
       assert(res.statusCode == 200)
       val json = parse(res.contentString).toOption.get
-      val times = json.t.map { _.t / "times" asLong }
+      val times = json.t./("items").map { _.t / "times" asLong }
       assert(times == Seq(60, 61, 62))
     }
   }
@@ -59,6 +59,6 @@ class FestivalEndpointSpec extends AndonServiceSuite with AndonUtil with JsonUti
     val res2 = f(req2)
     assert(res2.statusCode == 200)
     val json = parse(res2.contentString).toOption.get
-    assert(json.t.map { _.t / "times" asLong }.contains(100))
+    assert(json.t./("items").map { _.t / "times" asLong }.contains(100))
   }
 }
