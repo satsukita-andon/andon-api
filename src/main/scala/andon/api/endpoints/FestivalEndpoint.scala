@@ -20,9 +20,9 @@ trait FestivalEndpoint extends EndpointBase {
   val name = "festivals"
   def all = findAll :+: create
 
-  val findAll: Endpoint[Items[Festival]] = get(ver / name ? paging()) { (p: Paging) =>
+  def findAll: Endpoint[Items[Festival]] = get(ver / name ? paging()) { (p: Paging) =>
     DB.readOnly { implicit s =>
-      val paging = p.defaultOrderBy(FestivalModel.f.times).defaultOrder(DESC)
+      val paging = p.defaultOrder(FestivalModel.f.times -> DESC)
       val fs = FestivalModel.findAll(paging).map(Festival.apply) // Descending
       val all = FestivalModel.countAll
       Ok(Items(
@@ -33,7 +33,7 @@ trait FestivalEndpoint extends EndpointBase {
     }
   }
 
-  val create: Endpoint[Festival] = post(ver / name ? token ? body.as[FestivalCreation]) { (token: Token, fes: FestivalCreation) =>
+  def create: Endpoint[Festival] = post(ver / name ? token ? body.as[FestivalCreation]) { (token: Token, fes: FestivalCreation) =>
     DB.localTx { implicit s =>
       token.allowedOnly(Right.Admin) { _ =>
         FestivalModel.create(

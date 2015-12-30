@@ -18,7 +18,7 @@ trait ClassArticleEndpoint extends EndpointBase {
   val name = "class-articles"
   def all = findRevisions :+: destroy
 
-  val findRevisions: Endpoint[Items[ClassArticle]] = get(
+  def findRevisions: Endpoint[Items[ClassArticle]] = get(
     ver / name / int / "revisions" ? paging()
   ) { (articleId: Int, paging: Paging) =>
       DB.readOnly { implicit s =>
@@ -33,7 +33,7 @@ trait ClassArticleEndpoint extends EndpointBase {
       }
     }
 
-  val destroy: Endpoint[Unit] = delete(ver / name / int ? token) { (articleId: Int, token: Token) =>
+  def destroy: Endpoint[Unit] = delete(ver / name / int ? token) { (articleId: Int, token: Token) =>
     DB.localTx { implicit s =>
       ClassArticleModel.findClassId(articleId).map { classId =>
         token.allowedOnly(Right.ClassmateOf(classId)) { _ =>

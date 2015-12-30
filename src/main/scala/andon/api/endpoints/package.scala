@@ -11,7 +11,7 @@ package object endpoints {
   private def cast[S, T <: S](s: S, t: T): S = t
   val notFound: Endpoint[Unit] = * { cast(Ok(()), NotFound(ApiNotFound())) }
 
-  val all = (
+  def all = (
     UserEndpoint.all :+:
       AuthEndpoint.all :+:
       FestivalEndpoint.all :+:

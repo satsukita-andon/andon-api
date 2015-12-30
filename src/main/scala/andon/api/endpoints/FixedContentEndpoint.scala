@@ -28,7 +28,8 @@ trait FixedContentEndpoint extends EndpointBase {
 
   def findRevisionsByType: Endpoint[Items[FixedContent]] =
     get(ver / name / fixedContentType / "revisions" ? paging()) { (typ: FixedContentType, paging: Paging) =>
-      val p = paging.defaultLimit(20).maxLimit(20).defaultOrder(DESC)
+      val p = paging.defaultLimit(20).maxLimit(20)
+        .defaultOrder(FixedContentModel.fcr.revisionNumber -> DESC)
       DB.readOnly { implicit s =>
         FixedContentModel.findRevisionsByType(typ, p).map { case (c, rs) =>
           val count = rs.length.toLong

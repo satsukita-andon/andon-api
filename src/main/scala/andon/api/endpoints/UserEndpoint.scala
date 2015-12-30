@@ -35,7 +35,7 @@ trait UserEndpoint extends EndpointBase {
     DetailedUser(user, first, second, third)
   }
 
-  val findByLogin: Endpoint[DetailedUser] = get(ver / name / string("login")) { login: String =>
+  def findByLogin: Endpoint[DetailedUser] = get(ver / name / string("login")) { login: String =>
     DB.readOnly { implicit s =>
       UserModel.findByLogin(login).map { user =>
         Ok(toDetailed(user))
@@ -43,10 +43,10 @@ trait UserEndpoint extends EndpointBase {
     }
   }
 
-  val findAll: Endpoint[Items[User]] = get(ver / name ? paging()) { paging: Paging =>
+  def findAll: Endpoint[Items[User]] = get(ver / name ? paging()) { paging: Paging =>
     DB.readOnly { implicit s =>
       val p = paging.defaultLimit(50).maxLimit(100)
-        .defaultOrderBy(UserModel.u.id).defaultOrder(ASC)
+        .defaultOrder(UserModel.u.id -> ASC)
       val users = UserModel.findAll(p).map(User.apply)
       val all = UserModel.countAll
       Ok(Items(
@@ -57,7 +57,7 @@ trait UserEndpoint extends EndpointBase {
     }
   }
 
-  val create: Endpoint[DetailedUserWithToken] = post(ver / name ? body.as[UserCreation]) { creation: UserCreation =>
+  def create: Endpoint[DetailedUserWithToken] = post(ver / name ? body.as[UserCreation]) { creation: UserCreation =>
     DB.localTx { implicit s =>
       val logins = UserModel.findAllLogin
       val upper = SatsukitaInfo.firstGradeTimes
@@ -76,7 +76,7 @@ trait UserEndpoint extends EndpointBase {
     }
   }
 
-  val update: Endpoint[DetailedUser] = put(
+  def update: Endpoint[DetailedUser] = put(
     ver ? token ? body.as[UserModification]
   ) { (token: Token, modification: UserModification) =>
     DB.localTx { implicit s =>
@@ -107,7 +107,7 @@ trait UserEndpoint extends EndpointBase {
     }
   }
 
-  val updateAuthority: Endpoint[DetailedUser] = put(
+  def updateAuthority: Endpoint[DetailedUser] = put(
     ver / name / string("login") / "authority" ? token ? body.as[UserAuthorityModification]
   ) { (login: String, token: Token, modification: UserAuthorityModification) =>
     DB.localTx { implicit s =>

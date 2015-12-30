@@ -26,28 +26,22 @@ object SortOrder extends Injective[SortOrder, String] {
 final case class Paging(
   offset: Option[Int] = None,
   limit: Option[Int] = None,
-  order: Option[Seq[SortOrder]] = None,
-  orderBy: Option[Xor[String, Seq[SQLSyntax]]] = None
+  order: Option[Seq[(SQLSyntax, Option[SortOrder])]] = None
 ) {
+  def defaultOffset(offset: Int): Paging =
+    this.copy(offset = this.offset.orElse(Some(offset)))
   def defaultLimit(limit: Int): Paging =
     this.copy(limit = this.limit.orElse(Some(limit)))
   def maxLimit(max: Int): Paging =
     this.copy(limit = this.limit.map(_.min(max)).orElse(Some(max)))
-  def defaultOrder(order: SortOrder*): Paging =
-    this.copy(order = this.order.orElse(Some(order)))
-  def defaultOrderBy(orderBy: SQLSyntax*): Paging =
-    this.copy(orderBy = this.orderBy.orElse(Some(Xor.right(orderBy))))
-  def mapOrderBy(f: PartialFunction[String, SQLSyntax]): Paging =
-    this.copy(orderBy = this.orderBy.map(_.recover[Seq[SQLSyntax]](PartialFunction(_.split(",").collect(f)))))
+  def defaultOrder(order: (SQLSyntax, SortOrder)*): Paging =
+    this.copy(order = this.order.orElse(Some(order.map(o => o.copy(_2 = Some(o._2))))))
   def sql[A](sql: SQLBuilder[A]): SQLBuilder[A] = {
     val pagingSql = {
-      val sorted = orderBy.map(_.fold(_ => sqls.empty, { by =>
-        val len = by.length
-        val orders = order.map(_.map(Some.apply).padTo(len, None))
-          .getOrElse(Seq.fill(by.length)(None))
-        val ss = by.zip(orders).map { case (b, o) => o.fold(b)(_.sql(b)) } // postgresql's default is ASC
+      val sorted = order.map { os =>
+        val ss = os.map { case (by, o) => o.fold(by)(_.sql(by)) }
         sqls.orderBy(ss: _*)
-      })).getOrElse(sqls.empty)
+      }.getOrElse(sqls.empty)
       val limitted = limit.map(sorted.limit).getOrElse(sorted)
       offset.map(limitted.offset).getOrElse(limitted)
     }

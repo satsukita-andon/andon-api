@@ -29,26 +29,42 @@ trait EndpointBase {
       case Some(token) => RequestReader.value(token)
     }
   }
-  def orderBy(possibles: String*): RequestReader[Option[Xor[String, Seq[SQLSyntax]]]] = {
+  def orderBy(conv: (String, SQLSyntax)*): RequestReader[Option[Seq[(SQLSyntax, Option[SortOrder])]]] = {
     val p = paramOption("orderby")
-    if (possibles.isEmpty) {
+    if (conv.isEmpty) { // if `conv` is empty, parameters are ignored
       p.map(_ => None)
     } else {
-      p.should(s"be ${possibles.mkString(" or ")}")(_.map(_.split(',').forall(possibles.contains)).getOrElse(true))
-        .map(_.map(Xor.left))
+      val map = conv.toMap
+      // TODO: Refactor
+      var err = false
+      val orders = p.map(_.map(_.split(',').toSeq.map { s =>
+        val splitted = s.split(' ')
+        if (splitted.length == 0 || splitted.length > 2) { err = true }
+        val syntax = splitted.headOption.map { s =>
+          map.get(s).getOrElse {
+            err = true
+            SQLSyntax.empty
+          }
+        }.getOrElse(SQLSyntax.empty)
+        val order = splitted.lift(1).map { s =>
+          SortOrder.from(s.toUpperCase).getOrElse {
+            err = true
+            ASC
+          }
+        }
+        (syntax, order)
+      }))
+
+      val message = s"be `field1 order1,field2 order2,...` where field={${conv.map(_._1).mkString("|")}} and order={ASC,DESC}. If `order` is ommited, the order will be ASC."
+      orders.should(message)(_ => !err)
     }
   }
-  val order: RequestReader[Option[Seq[SortOrder]]] = paramOption("order")
-    .map(_.map(_.split(',').map(_.toUpperCase))) // RequestReader[Option[Seq[String]]]
-    .should("be ASC or DESC")(_.map(_.forall(SortOrder.images.contains)).getOrElse(true))
-    .map(_.map(_.flatMap(SortOrder.from)))
-  def paging(possibles: String*): RequestReader[Paging] = (
+  def paging(conv: (String, SQLSyntax)*): RequestReader[Paging] = (
     paramOption("offset").as[Int]
       .should("be non negative")(_.map(_ >= 0).getOrElse(true)) ::
       paramOption("limit").as[Int]
       .should("be non negative")(_.map(_ >= 0).getOrElse(true)) ::
-      order ::
-      orderBy(possibles: _*)
+      orderBy(conv: _*)
   ).as[Paging]
   def ordintParamOption(name: String): RequestReader[Option[OrdInt]] = paramOption(name)
     .map(_.map(OrdInt.parse))

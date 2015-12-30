@@ -24,7 +24,7 @@ trait ClassEndpoint extends EndpointBase {
   val name = "classes"
   def all = find :+: findAll :+: findImages :+: findArticles :+: createArticle
 
-  val find: Endpoint[Class] = get(ver / name / classId) { (classId: ClassId) =>
+  def find: Endpoint[Class] = get(ver / name / classId) { (classId: ClassId) =>
     DB.readOnly { implicit s =>
       ClassModel.findWithPrizesAndTags(classId).map { case (clazz, prizes, tags) =>
         Ok(Class(`class` = clazz, prizes = prizes, tags = tags))
@@ -32,17 +32,12 @@ trait ClassEndpoint extends EndpointBase {
     }
   }
 
-  val findAll: Endpoint[Items[Class]] = get(
-    ver / name ? ordintParamOption("times") ? paramOption("grade").as[Short] ? paramOption("class").as[Short] ? paging("times", "grade", "class")
+  def findAll: Endpoint[Items[Class]] = get(
+    ver / name ? ordintParamOption("times") ? paramOption("grade").as[Short] ? paramOption("class").as[Short]
+      ? paging("times" -> ClassModel.c.times, "grade" -> ClassModel.c.grade, "class" -> ClassModel.c.`class`)
   ) { (times: Option[OrdInt], grade: Option[Short], `class`: Option[Short], p: Paging) =>
     val paging = p.defaultLimit(30).maxLimit(100)
-      .defaultOrder(DESC, ASC, ASC)
-      .defaultOrderBy(ClassModel.c.times, ClassModel.c.grade, ClassModel.c.`class`)
-      .mapOrderBy {
-        case "times" => ClassModel.c.times
-        case "grade" => ClassModel.c.grade
-        case "class" => ClassModel.c.`class`
-      }
+      .defaultOrder(ClassModel.c.times -> DESC, ClassModel.c.grade -> ASC, ClassModel.c.`class` -> ASC)
     DB.readOnly { implicit s =>
       val classes = ClassModel.findAllWithPrizesAndTags(times, grade, `class`, paging).map { case (clazz, prizes, tags) =>
         Class(`class` = clazz, prizes = prizes, tags = tags)
@@ -56,13 +51,13 @@ trait ClassEndpoint extends EndpointBase {
     }
   }
 
-  val findImages: Endpoint[Items[ClassImage]] = get(
+  def findImages: Endpoint[Items[ClassImage]] = get(
     ver / name / classId / "images" ? paging()
   ) { (classId: ClassId, paging: Paging) =>
     DB.readOnly { implicit s =>
       ClassModel.findId(classId).map { id =>
         val p = paging.defaultLimit(50).maxLimit(100)
-          .defaultOrder(ASC).defaultOrderBy(ClassImageModel.ci.createdAt)
+          .defaultOrder(ClassImageModel.ci.createdAt -> ASC)
         val images = ClassImageModel.findAll(id, p).map { case (i, u) =>
           ClassImage.apply(i, u)
         }
@@ -72,12 +67,12 @@ trait ClassEndpoint extends EndpointBase {
     }
   }
 
-  val findArticles: Endpoint[Items[ClassArticle]] = get(
+  def findArticles: Endpoint[Items[ClassArticle]] = get(
     ver / name / classId / "articles" ? paging()
   ) { (classId: ClassId, paging: Paging) =>
     DB.readOnly { implicit s =>
       ClassModel.findId(classId).map { id =>
-        val p = paging.defaultOrder(DESC).defaultOrderBy(ClassArticleModel.ca.createdAt)
+        val p = paging.defaultOrder(ClassArticleModel.ca.createdAt -> DESC)
         val articles = ClassArticleModel.findAll(id, p).map { case (a, r) =>
           ClassArticle(a, r)
         }
@@ -87,7 +82,7 @@ trait ClassEndpoint extends EndpointBase {
     }
   }
 
-  val createArticle: Endpoint[DetailedClassArticle] = post(
+  def createArticle: Endpoint[DetailedClassArticle] = post(
     ver / name / classId / "articles" ? token ? body.as[ClassArticleCreation]
   ) { (classId: ClassId, token: Token, articleDef: ClassArticleCreation) =>
     DB.localTx { implicit s =>

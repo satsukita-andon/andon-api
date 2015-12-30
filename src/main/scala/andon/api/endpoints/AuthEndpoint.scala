@@ -19,7 +19,7 @@ trait AuthEndpoint extends EndpointBase {
   val name = "auth"
   def all = newToken
 
-  val newToken: Endpoint[EncodedToken] = post(ver / name / "token" ? body.as[AuthInfo]) { info: AuthInfo =>
+  def newToken: Endpoint[EncodedToken] = post(ver / name / "token" ? body.as[AuthInfo]) { info: AuthInfo =>
     DB.localTx { implicit s =>
       UserModel.findByAuthInfo(info.login, info.password).map { user =>
         Ok(EncodedToken(user))

@@ -20,7 +20,7 @@ trait ArticleEndpoint extends EndpointBase {
   val name = "articles"
   def all = create :+: updateContent :+: updateMeta :+: find :+: findAll :+: findRevisions
 
-  val create: Endpoint[DetailedArticle] = post(
+  def create: Endpoint[DetailedArticle] = post(
     ver / name ? token ? body.as[ArticleCreation]
   ) { (token: Token, creation: ArticleCreation) =>
     DB.localTx { implicit s =>
@@ -37,7 +37,7 @@ trait ArticleEndpoint extends EndpointBase {
   }
 
   // modify (title, body)
-  val updateContent: Endpoint[DetailedArticle] = put(
+  def updateContent: Endpoint[DetailedArticle] = put(
     ver / name / int ? token ? body.as[ArticleContentModification]
   ) { (articleId: Int, token: Token, modification: ArticleContentModification) =>
     DB.localTx { implicit s =>
@@ -71,7 +71,7 @@ trait ArticleEndpoint extends EndpointBase {
     }
   }
 
-  val updateMeta: Endpoint[DetailedArticle] = put(
+  def updateMeta: Endpoint[DetailedArticle] = put(
     ver / name / int / "meta" ? token ? body.as[ArticleMetaModification]
   ) { (articleId: Int, token: Token, modification: ArticleMetaModification) =>
     DB.localTx { implicit s =>
@@ -105,13 +105,13 @@ trait ArticleEndpoint extends EndpointBase {
   }
 
   // all users (not no logged-in user) can update tags
-  val updateTags: Endpoint[Unit] = put(
+  def updateTags: Endpoint[Unit] = put(
     ver / name / int / "tags" ? token ? body.as[Seq[String]]
   ) { (articleId: Int, token: Token, tags: Seq[String]) =>
     Ok(())
   }
 
-  val find: Endpoint[DetailedArticle] = get(ver / name / int) { articleId: Int =>
+  def find: Endpoint[DetailedArticle] = get(ver / name / int) { articleId: Int =>
     DB.readOnly { implicit s =>
       ArticleModel.find(articleId).map { case (a, o, r, u) =>
         Ok(DetailedArticle(a, o, r, u))
@@ -119,14 +119,11 @@ trait ArticleEndpoint extends EndpointBase {
     }
   }
 
-  val findAll: Endpoint[Items[Article]] = get(
-    ver / name ? paging("created_at", "updated_at")
+  def findAll: Endpoint[Items[Article]] = get(
+    ver / name ? paging("created_at" -> ArticleModel.a.createdAt, "updated_at" -> ArticleModel.a.updatedAt)
   ){ (p: Paging) =>
     val paging = p.defaultLimit(50).maxLimit(100)
-      .defaultOrder(DESC).defaultOrderBy(ArticleModel.a.createdAt).mapOrderBy {
-      case "created_at" => ArticleModel.a.createdAt
-      case "updated_at" => ArticleModel.a.updatedAt
-    }
+      .defaultOrder((ArticleModel.a.createdAt, DESC))
     DB.readOnly { implicit s =>
       val articles = ArticleModel.findAll(paging).map { case (a, o, r, u) =>
           Article(a, o, r, u)
@@ -140,11 +137,11 @@ trait ArticleEndpoint extends EndpointBase {
     }
   }
 
-  val findRevisions: Endpoint[Items[Article]] = get(
+  def findRevisions: Endpoint[Items[Article]] = get(
     ver / name / int / "revisions" ? paging()
   ) { (articleId: Int, paging: Paging) =>
       val p = paging.defaultLimit(20).maxLimit(20)
-        .defaultOrder(DESC).defaultOrderBy(ArticleModel.ar.revisionNumber)
+        .defaultOrder((ArticleModel.ar.revisionNumber, DESC))
       DB.readOnly { implicit s =>
         ArticleModel.findRevisions(articleId, p).map { case (a, o, rus) =>
           val all = ArticleModel.countRevisions(articleId)

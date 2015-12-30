@@ -8,8 +8,8 @@ import andon.api.util._
 object FixedContentModel extends FixedContentModel
 trait FixedContentModel {
 
-  private val fc = FixedContent.fc
-  private val fcr = FixedContentRevision.fcr
+  val fc = FixedContent.fc
+  val fcr = FixedContentRevision.fcr
 
   def revisionOpt(r: SyntaxProvider[FixedContentRevision])(rs: WrappedResultSet): Option[FixedContentRevision] =
     rs.shortOpt(r.resultName.id).map(_ => FixedContentRevision(r)(rs))
@@ -32,11 +32,10 @@ trait FixedContentModel {
     withSQL {
       paging.sql {
         select.from(FixedContent as fc)
-          .leftJoin(FixedContentRevision as fcr).on(SQLSyntax
+          .leftJoin(FixedContentRevision as fcr).on(sqls
             .eq(fcr.contentId, fc.id))
           .where
           .eq(fc.`type`, `type`.code)
-          .orderBy(fcr.revisionNumber)
       }
     }.one(FixedContent(fc))
       .toMany(revisionOpt(fcr))
