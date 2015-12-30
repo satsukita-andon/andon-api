@@ -53,17 +53,21 @@ trait ClassModel {
     `class`: Option[Short],
     paging: Paging
   )(implicit s: DBSession): Seq[(Class, Seq[Prize], Seq[String])] = {
+    val onlyOrderBy = paging.removeOffset.removeLimit
+    val subc = SubQuery.syntax("c", c.resultName) // "c" is important
     withSQL {
-      paging.sql {
-        select.from(Class as c)
-          .leftJoin(ClassPrizeRel as cpr).on(c.id, cpr.classId)
+      onlyOrderBy.sql {
+        select(c.result.*, cpr.result.*, p.result.*, ct.result.*).from(
+          paging.subQuerySql {
+            select(c.*).from(Class as c).where(sqls.toAndConditionOpt(
+              times.map(t => sqls.eq(c.times, t.raw)),
+              grade.map(g => sqls.eq(c.grade, g)),
+              `class`.map(cl => sqls.eq(c.`class`, cl))
+            ))
+          }.as(subc)
+        ).leftJoin(ClassPrizeRel as cpr).on(c.id, cpr.classId)
           .leftJoin(Prize as p).on(cpr.prizeId, p.id)
           .leftJoin(ClassTag as ct).on(c.id, ct.classId)
-          .where(sqls.toAndConditionOpt(
-            times.map(t => sqls.eq(c.times, t.raw)),
-            grade.map(g => sqls.eq(c.grade, g)),
-            `class`.map(cl => sqls.eq(c.`class`, cl))
-          ))
       }
     }.one(Class(c))
       .toManies(prizeOpt(p), classTagOpt(ct))
