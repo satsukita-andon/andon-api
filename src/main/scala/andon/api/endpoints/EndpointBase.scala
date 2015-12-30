@@ -29,12 +29,12 @@ trait EndpointBase {
       case Some(token) => RequestReader.value(token)
     }
   }
-  def orderBy(possibles: String*): RequestReader[Option[Xor[String, SQLSyntax]]] = {
+  def orderBy(possibles: String*): RequestReader[Option[Xor[String, Seq[SQLSyntax]]]] = {
     val p = paramOption("orderby").as[String]
     if (possibles.isEmpty) {
       p.map(_ => None)
     } else {
-      p.should(s"be ${possibles.mkString(" or ")}")(_.map(possibles.contains).getOrElse(true))
+      p.should(s"be ${possibles.mkString(" or ")}")(_.map(_.split(',').forall(possibles.contains)).getOrElse(true))
         .map(_.map(Xor.left))
     }
   }
@@ -50,6 +50,10 @@ trait EndpointBase {
       order ::
       orderBy(possibles: _*)
   ).as[Paging]
+  def ordintParamOption(name: String): RequestReader[Option[OrdInt]] = paramOption(name)
+    .map(_.map(OrdInt.parse))
+    .should("be ??st, ??nd, ??rd, or ??th")(_.map(_.nonEmpty).getOrElse(true))
+    .map(_.flatten)
   object short extends Extractor("short", s => Try(s.toShort).toOption)
   object ordint extends Extractor("ordint", OrdInt.parse)
   object classId extends Extractor("class_id", ClassId.parse)

@@ -27,7 +27,7 @@ final case class Paging(
   offset: Option[Int] = None,
   limit: Option[Int] = None,
   order: Option[SortOrder] = None,
-  orderBy: Option[Xor[String, SQLSyntax]] = None
+  orderBy: Option[Xor[String, Seq[SQLSyntax]]] = None
 ) {
   def defaultLimit(limit: Int): Paging =
     this.copy(limit = this.limit.orElse(Some(limit)))
@@ -35,14 +35,14 @@ final case class Paging(
     this.copy(limit = this.limit.map(_.min(max)).orElse(Some(max)))
   def defaultOrder(order: SortOrder): Paging =
     this.copy(order = this.order.orElse(Some(order)))
-  def defaultOrderBy(orderBy: SQLSyntax): Paging =
+  def defaultOrderBy(orderBy: SQLSyntax*): Paging =
     this.copy(orderBy = this.orderBy.orElse(Some(Xor.right(orderBy))))
   def mapOrderBy(f: PartialFunction[String, SQLSyntax]): Paging =
-    this.copy(orderBy = this.orderBy.map(_.recover[SQLSyntax](f)))
+    this.copy(orderBy = this.orderBy.map(_.recover[Seq[SQLSyntax]](PartialFunction(_.split(",").collect(f)))))
   def sql[A](sql: SQLBuilder[A]): SQLBuilder[A] = {
     val pagingSql = {
       val sorted = orderBy.map(_.fold(_ => SQLSyntax.empty, { by =>
-        val selected = SQLSyntax.orderBy(by)
+        val selected = SQLSyntax.orderBy(by: _*)
         order.map(_.sql(selected)).getOrElse(selected) // postgresql's default is ASC
       })).getOrElse(SQLSyntax.empty)
       val limitted = limit.map(sorted.limit).getOrElse(sorted)

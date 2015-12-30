@@ -6,15 +6,15 @@ import org.joda.time.DateTime
 
 import andon.api.errors._
 import andon.api.models.generated._
-import andon.api.util.ClassId
+import andon.api.util._
 
 object ClassModel extends ClassModel
 trait ClassModel {
 
-  private val c = Class.c
-  private val p = Prize.p
-  private val cpr = ClassPrizeRel.cpr
-  private val ct = ClassTag.ct
+  val c = Class.c
+  val p = Prize.p
+  val cpr = ClassPrizeRel.cpr
+  val ct = ClassTag.ct
 
   def prizeOpt(p: SyntaxProvider[Prize])(rs: WrappedResultSet): Option[Prize] =
     rs.shortOpt(p.resultName.id).map(_ => Prize(p)(rs))
@@ -45,6 +45,45 @@ trait ClassModel {
       .map { (c, ps, cts) => (c, ps, cts.map(_.label)) }
       .single
       .apply()
+  }
+
+  def findAllWithPrizesAndTags(
+    times: Option[OrdInt],
+    grade: Option[Short],
+    `class`: Option[Short],
+    paging: Paging
+  )(implicit s: DBSession): Seq[(Class, Seq[Prize], Seq[String])] = {
+    withSQL {
+      paging.sql {
+        select.from(Class as c)
+          .leftJoin(ClassPrizeRel as cpr).on(c.id, cpr.classId)
+          .leftJoin(Prize as p).on(cpr.prizeId, p.id)
+          .leftJoin(ClassTag as ct).on(c.id, ct.classId)
+          .where(sqls.toAndConditionOpt(
+            times.map(t => sqls.eq(c.times, t.raw)),
+            grade.map(g => sqls.eq(c.grade, g)),
+            `class`.map(cl => sqls.eq(c.`class`, cl))
+          ))
+      }
+    }.one(Class(c))
+      .toManies(prizeOpt(p), classTagOpt(ct))
+      .map { (c, ps, cts) => (c, ps, cts.map(_.label)) }
+      .list
+      .apply()
+  }
+
+  def countBy(
+    times: Option[OrdInt],
+    grade: Option[Short],
+    `class`: Option[Short]
+  )(implicit s: DBSession): Long = {
+    withSQL {
+      select(sqls.count).from(Class as c).where(sqls.toAndConditionOpt(
+        times.map(t => sqls.eq(c.times, t.raw)),
+        grade.map(g => sqls.eq(c.grade, g)),
+        `class`.map(cl => sqls.eq(c.`class`, cl))
+      ))
+    }.map(_.long(1)).single.apply().get
   }
 
   def create(

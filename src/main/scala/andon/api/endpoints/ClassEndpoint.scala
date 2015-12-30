@@ -22,13 +22,34 @@ trait ClassEndpoint extends EndpointBase {
   protected val ClassArticleModel: ClassArticleModel
 
   val name = "classes"
-  def all = find :+: findImages :+: findArticles :+: createArticle
+  def all = find :+: findAll :+: findImages :+: findArticles :+: createArticle
 
   val find: Endpoint[Class] = get(ver / name / classId) { (classId: ClassId) =>
     DB.readOnly { implicit s =>
       ClassModel.findWithPrizesAndTags(classId).map { case (clazz, prizes, tags) =>
         Ok(Class(`class` = clazz, prizes = prizes, tags = tags))
       }.getOrElse(NotFound(ResourceNotFound(s"${classId} is not found.")))
+    }
+  }
+
+  val findAll: Endpoint[Items[Class]] = get(
+    ver / name ? ordintParamOption("times") ? paramOption("grade").as[Short] ? paramOption("class").as[Short] ? paging("times", "grade", "class")
+  ) { (times: Option[OrdInt], grade: Option[Short], `class`: Option[Short], p: Paging) =>
+    val paging = p.defaultLimit(30).maxLimit(100).defaultOrder(ASC).defaultOrderBy(ClassModel.c.times, ClassModel.c.grade, ClassModel.c.`class`).mapOrderBy {
+      case "times" => ClassModel.c.times
+      case "grade" => ClassModel.c.grade
+      case "class" => ClassModel.c.`class`
+    }
+    DB.readOnly { implicit s =>
+      val classes = ClassModel.findAllWithPrizesAndTags(times, grade, `class`, paging).map { case (clazz, prizes, tags) =>
+        Class(`class` = clazz, prizes = prizes, tags = tags)
+      }
+      val all = ClassModel.countBy(times, grade, `class`)
+      Ok(Items(
+        count = classes.length.toLong,
+        all_count = all,
+        items = classes
+      ))
     }
   }
 
