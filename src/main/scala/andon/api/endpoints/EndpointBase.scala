@@ -35,28 +35,19 @@ trait EndpointBase {
       p.map(_ => None)
     } else {
       val map = conv.toMap
-      // TODO: Refactor
-      var err = false
+      // orders: ReqReader[Option[Seq[(Option[SQLSyntax], Option[Option[SortOrder]])]]]
       val orders = p.map(_.map(_.split(',').toSeq.map { s =>
         val splitted = s.split(' ')
-        if (splitted.length == 0 || splitted.length > 2) { err = true }
-        val syntax = splitted.headOption.map { s =>
-          map.get(s).getOrElse {
-            err = true
-            SQLSyntax.empty
-          }
-        }.getOrElse(SQLSyntax.empty)
-        val order = splitted.lift(1).map { s =>
-          SortOrder.from(s.toUpperCase).getOrElse {
-            err = true
-            ASC
-          }
-        }
+        val syntax = splitted.headOption.flatMap(map.get)
+        val order = splitted.lift(1).map(s => SortOrder.from(s.toUpperCase))
         (syntax, order)
       }))
 
       val message = s"be `field1 order1,field2 order2,...` where field={${conv.map(_._1).mkString("|")}} and order={ASC,DESC}. If `order` is ommited, the order will be ASC."
-      orders.should(message)(_ => !err)
+      orders.should(message)(_.map(_.forall { p =>
+        p._1.nonEmpty && p._2.map(_.nonEmpty).getOrElse(true)
+      }).getOrElse(true))
+        .map(_.map(_.map(p => (p._1.get, p._2.flatten))))
     }
   }
   def paging(conv: (String, SQLSyntax)*): RequestReader[Paging] = (

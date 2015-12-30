@@ -20,7 +20,9 @@ trait FestivalEndpoint extends EndpointBase {
   val name = "festivals"
   def all = findAll :+: create
 
-  def findAll: Endpoint[Items[Festival]] = get(ver / name ? paging()) { (p: Paging) =>
+  def findAll: Endpoint[Items[Festival]] = get(
+    ver / name ? paging("times" -> FestivalModel.f.times)
+  ) { (p: Paging) =>
     DB.readOnly { implicit s =>
       val paging = p.defaultOrder(FestivalModel.f.times -> DESC)
       val fs = FestivalModel.findAll(paging).map(Festival.apply) // Descending

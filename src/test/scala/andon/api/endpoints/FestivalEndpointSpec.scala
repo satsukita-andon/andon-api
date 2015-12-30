@@ -31,7 +31,7 @@ class FestivalEndpointSpec extends AndonServiceSuite with AndonUtil with JsonUti
       FestivalCreation(60, "瞬", "matataki", "またたき", None),
       FestivalCreation(61, "?", "?", "?", None)
     )) { _ =>
-      val req = Request("/dev/festivals?order=ASC")
+      val req = Request("/dev/festivals?orderby=times ASC")
       val res = f(req)
       assert(res.statusCode == 200)
       val json = parse(res.contentString).toOption.get
