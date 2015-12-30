@@ -35,11 +35,14 @@ trait ClassEndpoint extends EndpointBase {
   val findAll: Endpoint[Items[Class]] = get(
     ver / name ? ordintParamOption("times") ? paramOption("grade").as[Short] ? paramOption("class").as[Short] ? paging("times", "grade", "class")
   ) { (times: Option[OrdInt], grade: Option[Short], `class`: Option[Short], p: Paging) =>
-    val paging = p.defaultLimit(30).maxLimit(100).defaultOrder(ASC).defaultOrderBy(ClassModel.c.times, ClassModel.c.grade, ClassModel.c.`class`).mapOrderBy {
-      case "times" => ClassModel.c.times
-      case "grade" => ClassModel.c.grade
-      case "class" => ClassModel.c.`class`
-    }
+    val paging = p.defaultLimit(30).maxLimit(100)
+      .defaultOrder(DESC, ASC, ASC)
+      .defaultOrderBy(ClassModel.c.times, ClassModel.c.grade, ClassModel.c.`class`)
+      .mapOrderBy {
+        case "times" => ClassModel.c.times
+        case "grade" => ClassModel.c.grade
+        case "class" => ClassModel.c.`class`
+      }
     DB.readOnly { implicit s =>
       val classes = ClassModel.findAllWithPrizesAndTags(times, grade, `class`, paging).map { case (clazz, prizes, tags) =>
         Class(`class` = clazz, prizes = prizes, tags = tags)

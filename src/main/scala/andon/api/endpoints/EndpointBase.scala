@@ -30,7 +30,7 @@ trait EndpointBase {
     }
   }
   def orderBy(possibles: String*): RequestReader[Option[Xor[String, Seq[SQLSyntax]]]] = {
-    val p = paramOption("orderby").as[String]
+    val p = paramOption("orderby")
     if (possibles.isEmpty) {
       p.map(_ => None)
     } else {
@@ -38,10 +38,10 @@ trait EndpointBase {
         .map(_.map(Xor.left))
     }
   }
-  val order: RequestReader[Option[SortOrder]] = paramOption("order").as[String]
-    .map(_.map(_.toUpperCase))
-    .should("be ASC or DESC")(_.map(SortOrder.images.contains(_)).getOrElse(true))
-    .map(_.flatMap(SortOrder.from))
+  val order: RequestReader[Option[Seq[SortOrder]]] = paramOption("order")
+    .map(_.map(_.split(',').map(_.toUpperCase))) // RequestReader[Option[Seq[String]]]
+    .should("be ASC or DESC")(_.map(_.forall(SortOrder.images.contains)).getOrElse(true))
+    .map(_.map(_.flatMap(SortOrder.from)))
   def paging(possibles: String*): RequestReader[Paging] = (
     paramOption("offset").as[Int]
       .should("be non negative")(_.map(_ >= 0).getOrElse(true)) ::
