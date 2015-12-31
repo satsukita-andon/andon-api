@@ -28,7 +28,7 @@ trait UserEndpoint extends EndpointBase {
     }
   }
 
-  private def toDetailed(user: generated.User)(implicit s: DBSession) = {
+  def toDetailed(user: generated.User)(implicit s: DBSession) = {
     val first = getClass((user.times - 2).toShort, 1, user.classFirst)
     val second = getClass((user.times - 1).toShort, 2, user.classSecond)
     val third = getClass(user.times, 3, user.classThird)
