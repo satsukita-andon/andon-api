@@ -108,7 +108,9 @@ create table class_images (
   id serial primary key,
   class_id smallint not null references classes (id) on delete cascade,
   user_id integer not null references users (id) on delete cascade,
-  url text not null,
+  raw_url text not null,       -- no compression and no scale-down
+  fullsize_url text not null,  -- compression and no scale-down
+  thumbnail_url text not null, -- compression and scale-down
   created_at timestamptz not null -- and no update
 );
 
