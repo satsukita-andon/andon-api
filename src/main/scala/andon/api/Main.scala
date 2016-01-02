@@ -1,5 +1,6 @@
 package andon.api
 
+import com.typesafe.config.ConfigFactory
 import com.twitter.finagle.Http
 import com.twitter.util.Await
 
@@ -12,7 +13,8 @@ import andon.api.jsons.Implicits._
 
 object Main extends App {
 
-  val port = 6039
+  val conf = ConfigFactory.load()
+  val port = conf.getInt("port")
 
   val settings = scalikejdbc.LoggingSQLAndTimeSettings(
     stackTraceDepth = 1
