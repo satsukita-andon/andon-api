@@ -82,3 +82,5 @@ flywayUser := "amutake"
 scalikejdbcSettings
 
 parallelExecution in Test := false
+
+enablePlugins(JavaAppPackaging)
