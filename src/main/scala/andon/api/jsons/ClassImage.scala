@@ -8,7 +8,9 @@ final case class ClassImage(
   id: Int,
   class_id: Short,
   user: User,
-  url: String,
+  rawUrl: String,
+  fullsizeUrl: String,
+  thumbnailUrl: String,
   created_at: DateTime
 )
 
@@ -17,7 +19,9 @@ object ClassImage {
     id = image.id,
     class_id = image.classId,
     user = User(user),
-    url = image.url,
+    rawUrl = image.rawUrl,
+    fullsizeUrl = image.fullsizeUrl,
+    thumbnailUrl = image.thumbnailUrl,
     created_at = image.createdAt
   )
 }

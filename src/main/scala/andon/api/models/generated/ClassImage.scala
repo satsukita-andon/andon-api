@@ -7,7 +7,9 @@ case class ClassImage(
   id: Int,
   classId: Short,
   userId: Int,
-  url: String,
+  rawUrl: String,
+  fullsizeUrl: String,
+  thumbnailUrl: String,
   createdAt: DateTime) {
 
   def save()(implicit session: DBSession): ClassImage = ClassImage.save(this)(session)
@@ -21,14 +23,16 @@ object ClassImage extends SQLSyntaxSupport[ClassImage] {
 
   override val tableName = "class_images"
 
-  override val columns = Seq("id", "class_id", "user_id", "url", "created_at")
+  override val columns = Seq("id", "class_id", "user_id", "raw_url", "fullsize_url", "thumbnail_url", "created_at")
 
   def apply(ci: SyntaxProvider[ClassImage])(rs: WrappedResultSet): ClassImage = apply(ci.resultName)(rs)
   def apply(ci: ResultName[ClassImage])(rs: WrappedResultSet): ClassImage = new ClassImage(
     id = rs.get(ci.id),
     classId = rs.get(ci.classId),
     userId = rs.get(ci.userId),
-    url = rs.get(ci.url),
+    rawUrl = rs.get(ci.rawUrl),
+    fullsizeUrl = rs.get(ci.fullsizeUrl),
+    thumbnailUrl = rs.get(ci.thumbnailUrl),
     createdAt = rs.get(ci.createdAt)
   )
 
@@ -71,18 +75,24 @@ object ClassImage extends SQLSyntaxSupport[ClassImage] {
   def create(
     classId: Short,
     userId: Int,
-    url: String,
+    rawUrl: String,
+    fullsizeUrl: String,
+    thumbnailUrl: String,
     createdAt: DateTime)(implicit session: DBSession): ClassImage = {
     val generatedKey = withSQL {
       insert.into(ClassImage).columns(
         column.classId,
         column.userId,
-        column.url,
+        column.rawUrl,
+        column.fullsizeUrl,
+        column.thumbnailUrl,
         column.createdAt
       ).values(
         classId,
         userId,
-        url,
+        rawUrl,
+        fullsizeUrl,
+        thumbnailUrl,
         createdAt
       )
     }.updateAndReturnGeneratedKey.apply()
@@ -91,7 +101,9 @@ object ClassImage extends SQLSyntaxSupport[ClassImage] {
       id = generatedKey.toInt,
       classId = classId,
       userId = userId,
-      url = url,
+      rawUrl = rawUrl,
+      fullsizeUrl = fullsizeUrl,
+      thumbnailUrl = thumbnailUrl,
       createdAt = createdAt)
   }
 
@@ -100,17 +112,23 @@ object ClassImage extends SQLSyntaxSupport[ClassImage] {
       Seq(
         'classId -> entity.classId,
         'userId -> entity.userId,
-        'url -> entity.url,
+        'rawUrl -> entity.rawUrl,
+        'fullsizeUrl -> entity.fullsizeUrl,
+        'thumbnailUrl -> entity.thumbnailUrl,
         'createdAt -> entity.createdAt))
         SQL("""insert into class_images(
         class_id,
         user_id,
-        url,
+        raw_url,
+        fullsize_url,
+        thumbnail_url,
         created_at
       ) values (
         {classId},
         {userId},
-        {url},
+        {rawUrl},
+        {fullsizeUrl},
+        {thumbnailUrl},
         {createdAt}
       )""").batchByName(params: _*).apply()
     }
@@ -121,7 +139,9 @@ object ClassImage extends SQLSyntaxSupport[ClassImage] {
         column.id -> entity.id,
         column.classId -> entity.classId,
         column.userId -> entity.userId,
-        column.url -> entity.url,
+        column.rawUrl -> entity.rawUrl,
+        column.fullsizeUrl -> entity.fullsizeUrl,
+        column.thumbnailUrl -> entity.thumbnailUrl,
         column.createdAt -> entity.createdAt
       ).where.eq(column.id, entity.id)
     }.update.apply()
