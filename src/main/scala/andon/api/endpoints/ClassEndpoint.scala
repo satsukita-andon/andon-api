@@ -22,7 +22,7 @@ trait ClassEndpoint extends EndpointBase {
   protected val ClassArticleModel: ClassArticleModel
 
   val name = "classes"
-  def all = find :+: findAll :+: findImages :+: findArticles :+: createArticle
+  def all = find :+: findAll :+: findImages :+: findArticles :+: createArticle :+: findReviews
 
   def find: Endpoint[Class] = get(ver / name / classId) { (classId: ClassId) =>
     DB.readOnly { implicit s =>
@@ -115,6 +115,21 @@ trait ClassEndpoint extends EndpointBase {
           }
         )
       }
+    }
+  }
+
+  def findReviews: Endpoint[Items[ClassReview]] = get(
+    ver / name / classId / "reviews" ? paging()
+  ) { (classId: ClassId, paging: Paging) =>
+    DB.readOnly { implicit s =>
+      ClassModel.findId(classId).map { id =>
+        val p = paging.defaultOrder(ClassReviewModel.cr.createdAt -> ASC)
+        val reviews = ClassReviewModel.findAll(id, p).map { case (cr, u) =>
+          ClassReview(cr, u)
+        }
+        val count = ClassReviewModel.count(id)
+        Ok(Items(all_count = count, count = reviews.length.toLong, items = reviews))
+      }.getOrElse(NotFound(ResourceNotFound(s"${classId} is not found.")))
     }
   }
 }
