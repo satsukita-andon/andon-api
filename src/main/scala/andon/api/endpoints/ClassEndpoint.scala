@@ -57,6 +57,7 @@ trait ClassEndpoint extends EndpointBase {
     DB.readOnly { implicit s =>
       ClassModel.findId(classId).map { id =>
         val p = paging.defaultLimit(50).maxLimit(100)
+          .minimumOrder(ClassImageModel.ci.id -> ASC)
           .defaultOrder(ClassImageModel.ci.createdAt -> ASC)
         val images = ClassImageModel.findAll(id, p).map { case (i, u) =>
           ClassImage.apply(i, u)
@@ -72,7 +73,9 @@ trait ClassEndpoint extends EndpointBase {
   ) { (classId: ClassId, paging: Paging) =>
     DB.readOnly { implicit s =>
       ClassModel.findId(classId).map { id =>
-        val p = paging.defaultOrder(ClassArticleModel.ca.createdAt -> DESC)
+        val p = paging
+          .minimumOrder(ClassArticleModel.ca.id -> ASC)
+          .defaultOrder(ClassArticleModel.ca.createdAt -> DESC)
         val articles = ClassArticleModel.findAll(id, p).map { case (a, r) =>
           ClassArticle(a, r)
         }

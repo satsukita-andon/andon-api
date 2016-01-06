@@ -55,7 +55,8 @@ trait EndpointBase {
       .should("be non negative")(_.map(_ >= 0).getOrElse(true)) ::
       paramOption("limit").as[Int]
       .should("be non negative")(_.map(_ >= 0).getOrElse(true)) ::
-      orderBy(conv: _*)
+      orderBy(conv: _*) ::
+      RequestReader.value[Option[(SQLSyntax, SortOrder)]](None)
   ).as[Paging]
   def ordintParamOption(name: String): RequestReader[Option[OrdInt]] = paramOption(name)
     .map(_.map(OrdInt.parse))
