@@ -10,7 +10,7 @@ import andon.api.util._
 
 final case class ClassReview(
   id: Int,
-  classId: Short,
+  class_id: Short,
   user: User,
   title: String,
   body: String,
@@ -23,7 +23,7 @@ final case class ClassReview(
 object ClassReview {
   def apply(review: ClassReviewRow, user: UserRow): ClassReview = ClassReview(
     id = review.id,
-    classId = review.classId,
+    class_id = review.classId,
     user = User(user),
     title = review.title,
     body = review.body,
