@@ -19,6 +19,7 @@ package object endpoints {
       ClassArticleEndpoint.all :+:
       ArticleEndpoint.all :+:
       FixedContentEndpoint.all :+:
+      OtherEndpoint.all :+:
       notFound
   ).handle {
     case e: TokenRequired => Unauthorized(e)

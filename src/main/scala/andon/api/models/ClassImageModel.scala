@@ -25,6 +25,18 @@ trait ClassImageModel {
       .apply()
   }
 
+  def random(num: Int)(implicit s: DBSession): Seq[(ClassImage, User)] = {
+    withSQL {
+      select.from(ClassImage as ci)
+        .innerJoin(User as u).on(ci.userId, u.id)
+        .orderBy(sqls"random()")
+        .limit(num)
+    }.one(ClassImage(ci))
+      .toOne(User(u))
+      .map { (image, user) => (image, user) }
+      .list.apply()
+  }
+
   def count(classId: Short)(implicit s: DBSession): Long = {
     ClassImage.countBy(SQLSyntax.eq(ci.classId, classId))
   }
