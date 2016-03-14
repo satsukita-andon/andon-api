@@ -22,6 +22,21 @@ trait ClassArticleModel {
   private def revisionOpt(r: SyntaxProvider[ClassArticleRevision])(rs: WrappedResultSet): Option[ClassArticleRevision] =
     rs.shortOpt(r.resultName.id).map(_ => ClassArticleRevision(r)(rs))
 
+  def find(id: Int)(implicit s: DBSession): Option[(ClassArticle, ClassArticleRevision)] = {
+    withSQL {
+      select.from(ClassArticle as ca)
+        .innerJoin(ClassArticleRevision as car)
+        .on(SQLSyntax.eq(ca.id, car.articleId).and
+          .eq(ca.latestRevisionNumber, car.revisionNumber))
+        .where
+        .eq(ca.id, id)
+    }.one(ClassArticle(ca))
+      .toOne(ClassArticleRevision(car))
+      .map { (article, revision) => (article, revision) }
+      .single
+      .apply()
+  }
+
   def findAll(classId: Short, paging: Paging)(implicit s: DBSession): Seq[(ClassArticle, ClassArticleRevision)] = {
     withSQL {
       paging.sql {

@@ -16,7 +16,20 @@ trait ClassArticleEndpoint extends EndpointBase {
   val ClassArticleModel: ClassArticleModel
 
   val name = "class-articles"
-  def all = findRevisions :+: destroy
+  def all = find :+: findRevisions :+: destroy
+
+  def find: Endpoint[DetailedClassArticle] = get(ver / name / int) { articleId: Int =>
+    DB.readOnly { implicit s =>
+      (for {
+        (a, ar) <- ClassArticleModel.find(articleId)
+        (c, ps, ts) <- ClassModel.findWithPrizesAndTags(a.classId)
+      } yield {
+        val cu = a.createdBy.flatMap(UserModel.find)
+        val uu = ar.userId.flatMap(UserModel.find) // TODO: ar.userId?
+        Ok(DetailedClassArticle(c, ps, ts, a, ar, cu, uu))
+      }).getOrElse(NotFound(ResourceNotFound()))
+    }
+  }
 
   def findRevisions: Endpoint[Items[ClassArticle]] = get(
     ver / name / int / "revisions" ? paging()
