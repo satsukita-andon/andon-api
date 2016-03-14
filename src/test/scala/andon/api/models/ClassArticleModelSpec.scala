@@ -1,7 +1,6 @@
 package andon.api.models
 
 import scalikejdbc.scalatest.AutoRollback
-import org.joda.time.DateTime
 import org.scalatest._
 
 import andon.api.util._

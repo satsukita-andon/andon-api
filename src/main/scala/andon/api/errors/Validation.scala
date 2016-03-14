@@ -3,7 +3,7 @@ package andon.api.errors
 import cats._
 import cats.data._
 import cats.std.all._
-import cats.syntax.apply._
+import cats.syntax.cartesian._
 import org.apache.commons.validator.routines.{EmailValidator, UrlValidator}
 
 final case class InvalidItem(field: String, reason: String)

@@ -1,6 +1,5 @@
 package andon.api.endpoints
 
-import cats.data.Xor
 import scalikejdbc.interpolation.SQLSyntax
 
 import scala.util.Try
@@ -17,7 +16,7 @@ trait EndpointBase {
   // def all[C <: Coproduct]: Endpoint[C]
 
   // must be handle exception to cast status-code to 401 Unauthorized
-  val token: RequestReader[Token] = headerOption("Authorization").flatMap { header =>
+  val token: Endpoint[Token] = headerOption("Authorization").mapOutput { header =>
     val r = """^\s*Bearer\s+([^\s\,]*)\s*$""".r
     val tokenOpt = for {
       str <- header
@@ -25,11 +24,11 @@ trait EndpointBase {
       token <- Token.decode(tokenStr)
     } yield token
     tokenOpt match {
-      case None => RequestReader.exception(TokenRequired())
-      case Some(token) => RequestReader.value(token)
+      case None => Unauthorized(TokenRequired())
+      case Some(token) => Ok(token)
     }
   }
-  def orderBy(conv: (String, SQLSyntax)*): RequestReader[Option[Seq[(SQLSyntax, Option[SortOrder])]]] = {
+  def orderBy(conv: (String, SQLSyntax)*): Endpoint[Option[Seq[(SQLSyntax, Option[SortOrder])]]] = {
     val p = paramOption("orderby")
     if (conv.isEmpty) { // if `conv` is empty, parameters are ignored
       p.map(_ => None)
@@ -50,15 +49,16 @@ trait EndpointBase {
         .map(_.map(_.map(p => (p._1.get, p._2.flatten))))
     }
   }
-  def paging(conv: (String, SQLSyntax)*): RequestReader[Paging] = (
+  private val defaultMinimumOrder: Endpoint[Option[(SQLSyntax, SortOrder)]] = *.map(_ => None)
+  def paging(conv: (String, SQLSyntax)*): Endpoint[Paging] = (
     paramOption("offset").as[Int]
       .should("be non negative")(_.map(_ >= 0).getOrElse(true)) ::
       paramOption("limit").as[Int]
       .should("be non negative")(_.map(_ >= 0).getOrElse(true)) ::
       orderBy(conv: _*) ::
-      RequestReader.value[Option[(SQLSyntax, SortOrder)]](None)
+      defaultMinimumOrder
   ).as[Paging]
-  def ordintParamOption(name: String): RequestReader[Option[OrdInt]] = paramOption(name)
+  def ordintParamOption(name: String): Endpoint[Option[OrdInt]] = paramOption(name)
     .map(_.map(OrdInt.parse))
     .should("be ??st, ??nd, ??rd, or ??th")(_.map(_.nonEmpty).getOrElse(true))
     .map(_.flatten)

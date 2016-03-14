@@ -1,6 +1,5 @@
 package andon.api.models
 
-import org.joda.time.DateTime
 import scalikejdbc._
 
 import andon.api.models.generated._

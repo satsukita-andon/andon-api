@@ -4,7 +4,7 @@ organization := "com.satsukita-andon"
 
 version := "0.0.0"
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
 
 // from non/cats
 scalacOptions ++= Seq(
@@ -32,17 +32,17 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= {
-  val twitterServer = "1.16.0"
-  val finch = "0.9.3"
-  val circe = "0.2.1"
-  val scalikejdbc = "2.3.2"
-  val postgres = "9.4-1206-jdbc42"
-  val hikaricp = "2.4.3"
-  val scalatest = "2.2.4"
-  val jwt = "0.4.1"
-  val joda = "2.9.1"
+  val twitterServer = "1.18.0"
+  val finch = "0.10.0"
+  val circe = "0.3.0"
+  val scalikejdbc = "2.3.5"
+  val postgres = "9.4.1208"
+  val hikaricp = "2.4.4"
+  val scalatest = "2.2.6"
+  val jwt = "0.6.0"
+  val joda = "2.9.2"
   val shapeless = "2.2.5"
-  val cats = "0.3.0"
+  val cats = "0.4.1"
   val config = "1.3.0"
   val commonsValidator = "1.5.0"
   Seq(
@@ -52,7 +52,7 @@ libraryDependencies ++= {
     "com.github.finagle" %% "finch-test" % finch % "test",
     "io.circe" %% "circe-core" % circe,
     "io.circe" %% "circe-generic" % circe,
-    "io.circe" %% "circe-parse" % circe,
+    "io.circe" %% "circe-parser" % circe,
     "com.pauldijou" %% "jwt-core" % jwt,
     "org.scalikejdbc" %% "scalikejdbc" % scalikejdbc,
     "org.scalikejdbc" %% "scalikejdbc-test" % scalikejdbc % "test",
@@ -62,7 +62,7 @@ libraryDependencies ++= {
     "org.scalatest" %% "scalatest" % scalatest % "test",
     "joda-time" % "joda-time" % joda,
     "com.chuusai" %% "shapeless" % shapeless,
-    "org.spire-math" %% "cats" % cats,
+    "org.typelevel" %% "cats" % cats,
     "com.typesafe" % "config" % config,
     "com.github.jeremyh" % "jBCrypt" % "jbcrypt-0.4",
     "commons-validator" % "commons-validator" % commonsValidator
@@ -70,8 +70,6 @@ libraryDependencies ++= {
 }
 
 // db migration using flyway
-
-seq(flywaySettings:  _*)
 
 flywayUrl := "jdbc:postgresql://localhost/andon" // or andon_test
 

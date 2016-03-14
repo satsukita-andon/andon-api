@@ -1,6 +1,5 @@
 package andon.api.util
 
-import cats.data.Xor
 import scalikejdbc._
 
 sealed abstract class SortOrder {

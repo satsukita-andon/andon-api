@@ -1,7 +1,7 @@
 package andon.api.endpoints
 
 import org.scalatest._
-import io.circe.parse.parse
+import io.circe.parser.parse
 import com.twitter.finagle.http._
 import com.twitter.io.Buf
 

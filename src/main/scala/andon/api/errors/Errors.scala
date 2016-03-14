@@ -1,6 +1,5 @@
 package andon.api.errors
 
-import cats.data.NonEmptyList
 import io.circe._, generic.auto._, syntax._
 import io.finch.{ Error => FinchError }
 

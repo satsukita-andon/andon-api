@@ -65,7 +65,7 @@ object Token {
 
   def decode(str: String): Option[Token] = {
     Jwt.decode(str, key, Seq(algo)).toOption.flatMap { claim =>
-      parse.decode[Token](claim).toOption
+      io.circe.jawn.decode[Token](claim).toOption
     }
   }
 

@@ -38,7 +38,7 @@ trait ClassArticleEndpoint extends EndpointBase {
       ClassArticleModel.findClassId(articleId).map { classId =>
         token.allowedOnly(Right.ClassmateOf(classId)) { _ =>
           if (ClassArticleModel.destroy(articleId)) {
-            NoContent(())
+            NoContent[Unit]
           } else {
             NotFound(ResourceNotFound(s"article ${classId}/${articleId} is not found."))
           }
