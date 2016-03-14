@@ -49,7 +49,7 @@ trait EndpointBase {
         .map(_.map(_.map(p => (p._1.get, p._2.flatten))))
     }
   }
-  private val defaultMinimumOrder: Endpoint[Option[(SQLSyntax, SortOrder)]] = *.map(_ => None)
+  private val defaultMinimumOrder: Endpoint[Option[(SQLSyntax, SortOrder)]] = /.map(_ => None) // ?
   def paging(conv: (String, SQLSyntax)*): Endpoint[Paging] = (
     paramOption("offset").as[Int]
       .should("be non negative")(_.map(_ >= 0).getOrElse(true)) ::
