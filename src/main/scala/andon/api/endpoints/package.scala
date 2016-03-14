@@ -15,6 +15,7 @@ package object endpoints {
       FestivalEndpoint.all :+:
       ClassEndpoint.all :+:
       ClassArticleEndpoint.all :+:
+      ClassResourceEndpoint.all :+:
       ArticleEndpoint.all :+:
       FixedContentEndpoint.all :+:
       OtherEndpoint.all :+:

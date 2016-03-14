@@ -30,6 +30,21 @@ trait ClassModel {
     }.map(_.short(c.resultName.id)).single.apply()
   }
 
+  def findWithPrizesAndTags(id: Short)(implicit s: DBSession): Option[(Class, Seq[Prize], Seq[String])] = {
+    withSQL {
+      select.from(Class as c)
+        .leftJoin(ClassPrizeRel as cpr).on(c.id, cpr.classId)
+        .leftJoin(Prize as p).on(cpr.prizeId, p.id)
+        .leftJoin(ClassTag as ct).on(c.id, ct.classId)
+        .where
+        .eq(c.id, id)
+    }.one(Class(c))
+      .toManies(prizeOpt(p), classTagOpt(ct))
+      .map { (c, ps, cts) => (c, ps, cts.map(_.label)) }
+      .single
+      .apply()
+  }
+
   def findWithPrizesAndTags(classId: ClassId)(implicit s: DBSession): Option[(Class, Seq[Prize], Seq[String])] = {
     withSQL {
       select.from(Class as c)

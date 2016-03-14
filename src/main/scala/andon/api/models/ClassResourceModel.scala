@@ -22,6 +22,21 @@ trait ClassResourceModel {
   private def revisionOpt(r: SyntaxProvider[ClassResourceRevision])(rs: WrappedResultSet): Option[ClassResourceRevision] =
     rs.shortOpt(r.resultName.id).map(_ => ClassResourceRevision(r)(rs))
 
+  def find(id: Int)(implicit s: DBSession): Option[(ClassResource, ClassResourceRevision)] = {
+    withSQL {
+      select.from(ClassResource as cr)
+        .innerJoin(ClassResourceRevision as crr)
+        .on(SQLSyntax.eq(cr.id, crr.resourceId).and
+          .eq(cr.latestRevisionNumber, crr.revisionNumber))
+        .where
+        .eq(cr.id, id)
+    }.one(ClassResource(cr))
+      .toOne(ClassResourceRevision(crr))
+      .map { (resource, revision) => (resource, revision) }
+      .single
+      .apply()
+  }
+
   def findAll(classId: Short, paging: Paging)(implicit s: DBSession): Seq[(ClassResource, ClassResourceRevision)] = {
     withSQL {
       paging.sql {
