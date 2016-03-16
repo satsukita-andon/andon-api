@@ -6,5 +6,6 @@ case class Url(
 
 case class ImageUrl(
   thumbnail_url: String,
-  fullsize_url: String
+  fullsize_url: String,
+  raw_url: String
 )

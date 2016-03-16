@@ -22,7 +22,7 @@ trait FileEndpoint extends EndpointBase {
   val baseUrl = "https://static.satsukita-andon.com/"
 
   val name = "file"
-  def all = resources :+: classImages
+  def all = resources :+: images
 
   sealed abstract class ImageFormat
   object ImageFormat {
@@ -71,11 +71,11 @@ trait FileEndpoint extends EndpointBase {
     ver / name / "resources" :: token :: fileUpload("file")
   ) { (token: Token, uploaded: FileUpload) =>
     DB.readOnly { implicit s =>
-      token.rejectedOnlyAsync(Right.Suspended) { _ =>
+      token.rejectedOnlyAsync(Right.Suspended) { user =>
         fileReader(uploaded) { reader =>
           val ext = FilenameUtils.getExtension(uploaded.fileName)
           val uuid = UUID.randomUUID().toString()
-          val dir = "files/data/"
+          val dir = s"${user.id}/resources/"
           val path = dir + uuid + "." + ext
           val dest = new File(storage + path)
           new File(storage + dir).mkdirs()
@@ -88,18 +88,16 @@ trait FileEndpoint extends EndpointBase {
     }
   }
 
-  def classImages: Endpoint[ImageUrl] = post(
-    ver / name / "class-images" / classId :: token :: fileUpload("file")
-  ) { (c: ClassId, token: Token, uploaded: FileUpload) =>
+  def images: Endpoint[ImageUrl] = post(
+    ver / name / "images" / token :: fileUpload("file")
+  ) { (token: Token, uploaded: FileUpload) =>
     DB.readOnly { implicit s =>
-      token.rejectedOnlyAsync(Right.Suspended) { _ =>
+      token.rejectedOnlyAsync(Right.Suspended) { user =>
         val ext = FilenameUtils.getExtension(uploaded.fileName)
         ImageFormat.fromExtension(ext).map { format =>
           fileReader(uploaded) { reader =>
             val uuid = UUID.randomUUID().toString()
-            def dir(t: String) = {
-              s"files/gallery/${t}/${c.times}/${c.grade}/${c.`class`}/"
-            }
+            def dir(t: String) = s"${user.id}/images/${t}/"
             def path(t: String) = dir(t) + uuid + "." + ext
             val rawFile = new File(storage + path("raw"))
             new File(storage + dir("raw")).mkdirs()
@@ -107,7 +105,8 @@ trait FileEndpoint extends EndpointBase {
             Reader.copy(reader, writer).map { _ =>
               format match {
                 case ImageFormat.Svg | ImageFormat.Pdf => {
-                  Ok(ImageUrl(baseUrl + path("raw"), baseUrl + path("raw")))
+                  val rawUrl = baseUrl + path("raw")
+                  Ok(ImageUrl(rawUrl, rawUrl, rawUrl))
                 }
                 case _ => {
                   new File(storage + dir("thumbnail")).mkdirs()
@@ -116,7 +115,8 @@ trait FileEndpoint extends EndpointBase {
                   saveFullsize(format, storage + path("raw"), storage + path("fullsize"))
                   Ok(ImageUrl(
                     thumbnail_url = baseUrl + path("thumbnail"),
-                    fullsize_url = baseUrl + path("fullsize")
+                    fullsize_url = baseUrl + path("fullsize"),
+                    raw_url = baseUrl + path("raw")
                   ))
                 }
               }
