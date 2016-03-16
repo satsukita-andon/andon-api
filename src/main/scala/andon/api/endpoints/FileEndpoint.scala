@@ -1,5 +1,6 @@
 package andon.api.endpoints
 
+import scala.sys.process._
 import java.io.{ File, FileOutputStream }
 import java.util.UUID
 import org.apache.commons.io.{ FilenameUtils, FileUtils }
@@ -8,8 +9,6 @@ import com.twitter.finagle.http.exp.Multipart.{ FileUpload, InMemoryFileUpload, 
 import com.twitter.io._
 import io.finch._
 import scalikejdbc.DB
-import com.sksamuel.scrimage.Image
-import com.sksamuel.scrimage.nio.{ Reader => _, _ }
 
 import andon.api.jsons._
 import andon.api.errors._
@@ -47,30 +46,18 @@ trait FileEndpoint extends EndpointBase {
     }
   }
 
-  private def saveThumbnail(format: ImageFormat, src: File, dest: File): Unit = {
+  private def saveThumbnail(format: ImageFormat, src: String, dest: String): Unit = {
     val width = 500
-    (format match {
-      case ImageFormat.Jpeg | ImageFormat.Bmp => Some(JpegWriter(75, true))
-      case ImageFormat.Png => Some(PngWriter(7))
-      case ImageFormat.Gif => Some(GifWriter.Progressive)
-      case ImageFormat.Tiff => Some(new TiffWriter)
-      case _ => None // vector image
-    }) match {
-      case Some(writer) => Image.fromFile(src).scaleToWidth(width).output(dest)(writer)
-      case None => FileUtils.copyFile(src, dest)
+    format match {
+      case ImageFormat.Pdf | ImageFormat.Svg => FileUtils.copyFile(new File(src), new File(dest))
+      case _ => s"convert -resize ${width}x -quality 75 $src $dest".!
     }
   }
 
-  private def saveFullsize(format: ImageFormat, src: File, dest: File): Unit = {
-    (format match {
-      case ImageFormat.Jpeg | ImageFormat.Bmp => Some(JpegWriter(50, true))
-      case ImageFormat.Png => Some(PngWriter.MaxCompression)
-      case ImageFormat.Gif => Some(GifWriter.Progressive)
-      case ImageFormat.Tiff => Some(new TiffWriter)
-      case _ => None // vector image
-    }) match {
-      case Some(writer) => Image.fromFile(src).output(dest)(writer)
-      case None => FileUtils.copyFile(src, dest)
+  private def saveFullsize(format: ImageFormat, src: String, dest: String): Unit = {
+    format match {
+      case ImageFormat.Pdf | ImageFormat.Svg => FileUtils.copyFile(new File(src), new File(dest))
+      case _ => s"convert -quality 50 $src $dest".!
     }
   }
 
@@ -125,8 +112,8 @@ trait FileEndpoint extends EndpointBase {
                 case _ => {
                   new File(storage + dir("thumbnail")).mkdirs()
                   new File(storage + dir("fullsize")).mkdirs()
-                  saveThumbnail(format, rawFile, new File(storage + path("thumbnail")))
-                  saveFullsize(format, rawFile, new File(storage + path("fullsize")))
+                  saveThumbnail(format, storage + path("raw"), storage + path("thumbnail"))
+                  saveFullsize(format, storage + path("raw"), storage + path("fullsize"))
                   Ok(ImageUrl(
                     thumbnail_url = baseUrl + path("thumbnail"),
                     fullsize_url = baseUrl + path("fullsize")

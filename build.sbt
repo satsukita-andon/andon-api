@@ -46,7 +46,6 @@ libraryDependencies ++= {
   val config = "1.3.0"
   val commonsValidator = "1.5.0"
   val commonsIo = "2.4"
-  val scrimage = "2.1.5"
   Seq(
     "com.twitter" %% "twitter-server" % twitterServer,
     "com.github.finagle" %% "finch-core" % finch,
@@ -68,9 +67,7 @@ libraryDependencies ++= {
     "com.typesafe" % "config" % config,
     "com.github.jeremyh" % "jBCrypt" % "jbcrypt-0.4",
     "commons-validator" % "commons-validator" % commonsValidator,
-    "commons-io" % "commons-io" % commonsIo,
-    "com.sksamuel.scrimage" %% "scrimage-core" % scrimage,
-    "com.sksamuel.scrimage" %% "scrimage-io-extra" % scrimage
+    "commons-io" % "commons-io" % commonsIo
   )
 }
 
