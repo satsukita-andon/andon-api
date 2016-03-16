@@ -29,7 +29,7 @@ trait ArticleEndpoint extends EndpointBase {
           { nel => BadRequest(ValidationError(nel)) },
           { creation =>
             val (article, revision) = ArticleModel.create(user.id, creation)
-            Ok(DetailedArticle(article, user, revision, Some(user)))
+            Ok(DetailedArticle(article, user, Seq(), revision, Some(user)))
           }
         )
       }
@@ -50,8 +50,8 @@ trait ArticleEndpoint extends EndpointBase {
           body = modification.body,
           comment = modification.comment
         ).map { _ =>
-          ArticleModel.find(articleId).map { case (a, o, r, u) =>
-            Ok(DetailedArticle(a, o, r, u))
+          ArticleModel.find(articleId).map { case (a, o, ts, r, u) =>
+            Ok(DetailedArticle(a, o, ts, r, u))
           }.getOrElse(NotFound(ResourceNotFound()))
         }.getOrElse(NotFound(ResourceNotFound()))
       }
@@ -94,8 +94,8 @@ trait ArticleEndpoint extends EndpointBase {
               editorialRight = modification.editorial_right,
               editorIdSet = modification.editor_ids.toSet
             )
-            ArticleModel.find(articleId).map { case (a, o, r, u) =>
-              Ok(DetailedArticle(a, o, r, u))
+            ArticleModel.find(articleId).map { case (a, o, ts, r, u) =>
+              Ok(DetailedArticle(a, o, ts, r, u))
             }.getOrElse(NotFound(ResourceNotFound()))
           }
           )
@@ -113,8 +113,8 @@ trait ArticleEndpoint extends EndpointBase {
 
   def find: Endpoint[DetailedArticle] = get(ver / name / int) { articleId: Int =>
     DB.readOnly { implicit s =>
-      ArticleModel.find(articleId).map { case (a, o, r, u) =>
-        Ok(DetailedArticle(a, o, r, u))
+      ArticleModel.find(articleId).map { case (a, o, ts, r, u) =>
+        Ok(DetailedArticle(a, o, ts, r, u))
       }.getOrElse(NotFound(ResourceNotFound()))
     }
   }
@@ -125,8 +125,8 @@ trait ArticleEndpoint extends EndpointBase {
     val paging = p.defaultLimit(50).maxLimit(100)
       .defaultOrder((ArticleModel.a.createdAt, DESC))
     DB.readOnly { implicit s =>
-      val articles = ArticleModel.findAll(paging).map { case (a, o, r, u) =>
-          Article(a, o, r, u)
+      val articles = ArticleModel.findAll(paging).map { case (a, o, ts, r, u) =>
+          Article(a, o, ts, r, u)
       }
       val all = ArticleModel.countAll
       Ok(Items(
@@ -143,12 +143,12 @@ trait ArticleEndpoint extends EndpointBase {
       val p = paging.defaultLimit(20).maxLimit(20)
         .defaultOrder((ArticleModel.ar.revisionNumber, DESC))
       DB.readOnly { implicit s =>
-        ArticleModel.findRevisions(articleId, p).map { case (a, o, rus) =>
+        ArticleModel.findRevisions(articleId, p).map { case (a, o, ts, rus) =>
           val all = ArticleModel.countRevisions(articleId)
           Ok(Items(
             count = rus.length.toLong,
             all_count = all,
-            items = rus.map { case (r, u) => Article(a, o, r, u) }
+            items = rus.map { case (r, u) => Article(a, o, ts, r, u) }
           ))
         }.getOrElse(NotFound(ResourceNotFound()))
       }

@@ -104,6 +104,7 @@ final case class Article(
   comment: String,
   owner: User,
   editor: Option[User],
+  tags: Seq[String],
   created_at: DateTime,
   updated_at: DateTime
 )
@@ -112,6 +113,7 @@ object Article {
   def apply(
     article: ArticleRow,
     owner: UserRow,
+    tags: Seq[String],
     revision: ArticleRevisionRow,
     editor: Option[UserRow]
   ): Article = Article(
@@ -122,6 +124,7 @@ object Article {
     comment = revision.comment,
     owner = User(owner),
     editor = editor.map(User.apply),
+    tags = tags,
     created_at = article.createdAt,
     updated_at = revision.createdAt
   )
@@ -136,6 +139,7 @@ final case class DetailedArticle(
   comment: String,
   owner: User,
   editor: Option[User],
+  tags: Seq[String],
   created_at: DateTime,
   updated_at: DateTime
 )
@@ -144,9 +148,9 @@ object DetailedArticle {
   def apply(
     article: ArticleRow,
     owner: UserRow,
+    tags: Seq[String],
     revision: ArticleRevisionRow,
     editor: Option[UserRow]
-      // tags: Seq[String],
       // editors: Seq[UserRow]
   ): DetailedArticle = DetailedArticle(
     id = article.id,
@@ -157,6 +161,7 @@ object DetailedArticle {
     comment = revision.comment,
     owner = User(owner),
     editor = editor.map(User.apply),
+    tags = tags,
     created_at = article.createdAt,
     updated_at = revision.createdAt
   )

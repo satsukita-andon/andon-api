@@ -17,27 +17,32 @@ trait ArticleModel {
   val a = Article.a
   val ar = ArticleRevision.ar
   val aer = ArticleEditorRel.aer
+  val at = ArticleTag.at
   private val u = User.u
 
   def revisionOpt(r: SyntaxProvider[ArticleRevision])(rs: WrappedResultSet): Option[ArticleRevision] =
     rs.shortOpt(r.resultName.id).map(_ => ArticleRevision(r)(rs))
 
+  def articleTagOpt(t: SyntaxProvider[ArticleTag])(rs: WrappedResultSet): Option[ArticleTag] =
+    rs.intOpt(t.resultName.id).map(_ => ArticleTag(t)(rs))
+
   def editorRelOpt(er: SyntaxProvider[ArticleEditorRel])(rs: WrappedResultSet): Option[ArticleEditorRel] =
     rs.intOpt(er.resultName.id).map(_ => ArticleEditorRel(er)(rs))
 
-  def find(articleId: Int)(implicit s: DBSession): Option[(Article, User, ArticleRevision, Option[User])] = {
+  def find(articleId: Int)(implicit s: DBSession): Option[(Article, User, Seq[String], ArticleRevision, Option[User])] = {
     // TODO: optimize
-    val ao = withSQL {
+    val aot = withSQL {
       select.from(Article as a)
         .innerJoin(User as u).on(u.id, a.ownerId)
+        .leftJoin(ArticleTag as at).on(a.id, at.articleId)
         .where
         .eq(a.id, articleId)
     }.one(Article(a))
-      .toOne(User(u))
-      .map((a, o) => (a, o))
+      .toManies(rs => Some(User(u)(rs)), articleTagOpt(at))
+      .map((a, os, ts) => (a, os.head, ts.map(_.label)))
       .single.apply()
 
-    ao.flatMap { case (a, o) =>
+    aot.flatMap { case (a, o, ts) =>
       val ru = withSQL {
         select.from(ArticleRevision as ar)
           .leftJoin(User as u).on(u.id, ar.userId)
@@ -48,23 +53,24 @@ trait ArticleModel {
         .toOne(UserModel.opt(u))
         .map((r, u) => (r, u))
         .single.apply()
-      ru.map { case (r, u) => (a, o, r, u) }
+      ru.map { case (r, u) => (a, o, ts, r, u) }
     }
   }
 
-  def findAll(paging: Paging)(implicit s: DBSession): Seq[(Article, User, ArticleRevision, Option[User])] = {
-    // TODO: optimize
-    val aos = withSQL {
+  def findAll(paging: Paging)(implicit s: DBSession): Seq[(Article, User, Seq[String], ArticleRevision, Option[User])] = {
+    // TODO: optimize, N + 1 query
+    val aots = withSQL {
       paging.sql {
         select.from(Article as a)
           .innerJoin(User as u).on(u.id, a.ownerId)
+          .leftJoin(ArticleTag as at).on(at.articleId, a.id)
       }
     }.one(Article(a))
-      .toOne(User(u))
-      .map((a, o) => (a, o))
+      .toManies(rs => Some(User(u)(rs)), articleTagOpt(at))
+      .map((a, os, ats) => (a, os.head, ats.map(_.label))) // head is safe
       .list.apply()
 
-    aos.map { case (a, o) =>
+    aots.map { case (a, o, ts) =>
       val ru = withSQL {
         select.from(ArticleRevision as ar)
           .leftJoin(User as u).on(u.id, ar.userId)
@@ -75,25 +81,26 @@ trait ArticleModel {
         .toOne(UserModel.opt(u))
         .map((r, u) => (r, u))
         .single.apply()
-      ru.map { case (r, u) => (a, o, r, u) }.get // not cause error
+      ru.map { case (r, u) => (a, o, ts, r, u) }.get // not cause error
     }
   }
 
   def findRevisions(
     articleId: Int, paging: Paging
-  )(implicit s: DBSession): Option[(Article, User, Seq[(ArticleRevision, Option[User])])] = {
+  )(implicit s: DBSession): Option[(Article, User, Seq[String], Seq[(ArticleRevision, Option[User])])] = {
     // TODO: optimize
-    val ao = withSQL {
+    val aot = withSQL {
       select.from(Article as a)
         .innerJoin(User as u).on(u.id, a.ownerId)
+        .leftJoin(ArticleTag as at).on(a.id, at.articleId)
         .where
         .eq(a.id, articleId)
     }.one(Article(a))
-      .toOne(User(u))
-      .map((a, o) => (a, o))
+      .toManies(rs => Some(User(u)(rs)), articleTagOpt(at))
+      .map((a, os, ats) => (a, os.head, ats.map(_.label))) // head is safe
       .single.apply()
 
-    ao.map { case (a, o) =>
+    aot.map { case (a, o, t) =>
       val rus = withSQL {
         paging.sql {
           select.from(ArticleRevision as ar)
@@ -105,7 +112,7 @@ trait ArticleModel {
         .toOne(UserModel.opt(u))
         .map((r, u) => (r, u))
         .list.apply()
-      (a, o, rus)
+      (a, o, t, rus)
     }
   }
 
