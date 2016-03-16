@@ -55,6 +55,10 @@ final case class Incorrect(msg: String = "Your request is something incorrect.")
   code = "incorrect",
   message = msg
 )
+final case class InvalidFileFormat(msg: String = "Requested file format is invalid.") extends AndonError(
+  code = "invalid_file_format",
+  message = msg
+)
 final case class JsonError(msg: String = "Cannot parse as json.") extends AndonError(
   code = "json_error",
   message = msg
