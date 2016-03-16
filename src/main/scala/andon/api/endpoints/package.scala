@@ -18,6 +18,7 @@ package object endpoints {
       ClassResourceEndpoint.all :+:
       ArticleEndpoint.all :+:
       FixedContentEndpoint.all :+:
+      FileEndpoint.all :+:
       OtherEndpoint.all :+:
       notFound
   ).handle {

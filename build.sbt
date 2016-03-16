@@ -45,6 +45,7 @@ libraryDependencies ++= {
   val cats = "0.4.1"
   val config = "1.3.0"
   val commonsValidator = "1.5.0"
+  val commonsIo = "2.4"
   Seq(
     "com.twitter" %% "twitter-server" % twitterServer,
     "com.github.finagle" %% "finch-core" % finch,
@@ -65,7 +66,8 @@ libraryDependencies ++= {
     "org.typelevel" %% "cats" % cats,
     "com.typesafe" % "config" % config,
     "com.github.jeremyh" % "jBCrypt" % "jbcrypt-0.4",
-    "commons-validator" % "commons-validator" % commonsValidator
+    "commons-validator" % "commons-validator" % commonsValidator,
+    "commons-io" % "commons-io" % commonsIo
   )
 }
 
