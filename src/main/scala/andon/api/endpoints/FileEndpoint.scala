@@ -9,6 +9,7 @@ import com.twitter.finagle.http.exp.Multipart.{ FileUpload, InMemoryFileUpload, 
 import com.twitter.io._
 import io.finch._
 import scalikejdbc.DB
+import com.typesafe.config.ConfigFactory
 
 import andon.api.jsons._
 import andon.api.errors._
@@ -18,8 +19,9 @@ object FileEndpoint extends FileEndpoint {
 }
 trait FileEndpoint extends EndpointBase {
 
-  val storage = "../static.satsukita-andon.com/" // must be end with slash ("/")
-  val baseUrl = "https://static.satsukita-andon.com/"
+  private val conf = ConfigFactory.load()
+  private val storage = conf.getString("static.path")
+  private val baseUrl = conf.getString("static.base")
 
   val name = "file"
   def all = resources :+: images
