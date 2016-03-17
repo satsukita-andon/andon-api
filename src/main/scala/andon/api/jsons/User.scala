@@ -70,7 +70,7 @@ final case class UserModification(
         field = "name",
         reason = "`name` length must be less than or equal to 30 characters"
       ),
-      email.map(Validation.email).getOrElse(false) -> InvalidItem(
+      email.map(e => !Validation.email(e)).getOrElse(false) -> InvalidItem(
         field = "email",
         reason = "`email` must be valid email"
       )
