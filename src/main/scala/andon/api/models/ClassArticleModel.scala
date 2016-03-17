@@ -5,7 +5,7 @@ import org.joda.time.DateTime
 import scalikejdbc._
 
 import andon.api.errors._
-import andon.api.models.generated.{ Class, ClassArticle, ClassArticleRevision }
+import andon.api.models.generated.{ Class, ClassArticle, ClassArticleRevision, User }
 import andon.api.util._
 
 object ClassArticleModel extends ClassArticleModel {
@@ -37,23 +37,29 @@ trait ClassArticleModel {
       .apply()
   }
 
-  def findAll(classId: Short, paging: Paging)(implicit s: DBSession): Seq[(ClassArticle, ClassArticleRevision)] = {
+  def findAll(classId: Short, paging: Paging)(implicit s: DBSession):
+      Seq[(ClassArticle, ClassArticleRevision, Option[User], Option[User])] = {
+    val u1 = User.syntax("u1")
+    val u2 = User.syntax("u2")
     withSQL {
       paging.sql {
         select.from(ClassArticle as ca)
           .innerJoin(ClassArticleRevision as car)
           .on(SQLSyntax.eq(ca.id, car.articleId).and
             .eq(ca.latestRevisionNumber, car.revisionNumber))
+          .leftJoin(User as u1).on(ca.createdBy, u1.id)
+          .leftJoin(User as u2).on(car.userId, u2.id)
           .where
           .eq(ca.classId, classId)
       }
     }.one(ClassArticle(ca))
-      .toOne(ClassArticleRevision(car))
-      .map { (article, revision) => (article, revision) }
+      .toManies(rs => Some(ClassArticleRevision(car)(rs)), UserModel.opt(u1), UserModel.opt(u2))
+      .map { (article, revisions, cs, us) => (article, revisions.head, cs.headOption, us.headOption) } // safe
       .list
       .apply()
   }
-  def findAll(classId: ClassId, paging: Paging)(implicit s: DBSession): Seq[(ClassArticle, ClassArticleRevision)] = {
+  def findAll(classId: ClassId, paging: Paging)(implicit s: DBSession):
+      Seq[(ClassArticle, ClassArticleRevision, Option[User], Option[User])] = {
     ClassModel.findId(classId).map(findAll(_, paging)).getOrElse(Seq())
   }
 
@@ -64,18 +70,25 @@ trait ClassArticleModel {
     ClassModel.findId(classId).map(count).getOrElse(0L)
   }
 
-  def findRevisions(articleId: Int, paging: Paging)(implicit s: DBSession): Option[(ClassArticle, Seq[ClassArticleRevision])] = {
+  def findRevisions(articleId: Int, paging: Paging)(implicit s: DBSession): Option[(ClassArticle, Option[User], Seq[(ClassArticleRevision, Option[User])])] = {
+    val u1 = User.syntax("u1")
+    val u2 = User.syntax("u2")
     withSQL {
       paging.sql {
         select.from(ClassArticle as ca)
           .leftJoin(ClassArticleRevision as car).on(SQLSyntax
             .eq(ca.id, car.articleId).and
             .eq(ca.latestRevisionNumber, car.revisionNumber))
+          .leftJoin(User as u1).on(ca.createdBy, u1.id)
+          .leftJoin(User as u2).on(car.userId, u2.id)
           .where.eq(ca.id, articleId)
       }
     }.one(ClassArticle(ca))
-      .toMany(revisionOpt(car))
-      .map((a, rs) => (a, rs))
+      .toManies(revisionOpt(car), UserModel.opt(u1), UserModel.opt(u2))
+      .map { (a, rs, cs, us) =>
+        val d = us.groupBy(_.id).mapValues(_.head) // safe
+        (a, cs.headOption, rs.map(r => (r, r.userId.flatMap(d.get))))
+      }
       .single.apply()
   }
 

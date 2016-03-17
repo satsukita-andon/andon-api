@@ -35,21 +35,26 @@ final case class ClassArticle(
   status: PublishingStatus,
   title: String,
   comment: String,
-  created_by: Option[Int],
-  updated_by: Option[Int],
+  created_by: Option[User],
+  updated_by: Option[User],
   created_at: DateTime,
   updated_at: DateTime
 )
 
 object ClassArticle {
-  def apply(article: ClassArticleRow, revision: ClassArticleRevisionRow): ClassArticle = ClassArticle(
+  def apply(
+    article: ClassArticleRow,
+    revision: ClassArticleRevisionRow,
+    createdBy: Option[UserRow],
+    updatedBy: Option[UserRow]
+  ): ClassArticle = ClassArticle(
     id = article.id,
     revision_number = revision.revisionNumber,
     status = PublishingStatus.from(article.status).get, // TODO
     title = revision.title,
     comment = revision.comment,
-    created_by = article.createdBy,
-    updated_by = revision.userId,
+    created_by = createdBy.map(User.apply),
+    updated_by = updatedBy.map(User.apply),
     created_at = article.createdAt,
     updated_at = revision.createdAt
   )

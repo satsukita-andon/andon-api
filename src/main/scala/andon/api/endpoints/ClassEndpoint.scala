@@ -76,8 +76,8 @@ trait ClassEndpoint extends EndpointBase {
         val p = paging
           .minimumOrder(ClassArticleModel.ca.id -> ASC)
           .defaultOrder(ClassArticleModel.ca.createdAt -> DESC)
-        val articles = ClassArticleModel.findAll(id, p).map { case (a, r) =>
-          ClassArticle(a, r)
+        val articles = ClassArticleModel.findAll(id, p).map { case (a, r, c, u) =>
+          ClassArticle(a, r, c, u)
         }
         val count = ClassArticleModel.count(id)
         Ok(Items(all_count = count, count = articles.length.toLong, items = articles))
