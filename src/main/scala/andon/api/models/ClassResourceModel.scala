@@ -5,7 +5,7 @@ import org.joda.time.DateTime
 import scalikejdbc._
 
 import andon.api.errors._
-import andon.api.models.generated.{ Class, ClassResource, ClassResourceRevision }
+import andon.api.models.generated.{ Class, ClassResource, ClassResourceRevision, User }
 import andon.api.util._
 
 object ClassResourceModel extends ClassResourceModel {
@@ -37,23 +37,29 @@ trait ClassResourceModel {
       .apply()
   }
 
-  def findAll(classId: Short, paging: Paging)(implicit s: DBSession): Seq[(ClassResource, ClassResourceRevision)] = {
+  def findAll(classId: Short, paging: Paging)(implicit s: DBSession):
+      Seq[(ClassResource, ClassResourceRevision, Option[User], Option[User])] = {
+    val u1 = User.syntax("u1")
+    val u2 = User.syntax("u2")
     withSQL {
       paging.sql {
         select.from(ClassResource as cr)
           .innerJoin(ClassResourceRevision as crr)
           .on(SQLSyntax.eq(cr.id, crr.resourceId).and
             .eq(cr.latestRevisionNumber, crr.revisionNumber))
+          .leftJoin(User as u1).on(cr.createdBy, u1.id)
+          .leftJoin(User as u2).on(crr.userId, u2.id)
           .where
           .eq(cr.classId, classId)
       }
     }.one(ClassResource(cr))
-      .toOne(ClassResourceRevision(crr))
-      .map { (resource, revision) => (resource, revision) }
+      .toManies(rs => Some(ClassResourceRevision(crr)(rs)), UserModel.opt(u1), UserModel.opt(u2))
+      .map { (resource, revisions, cs, us) => (resource, revisions.head, cs.headOption, us.headOption) } // safe
       .list
       .apply()
   }
-  def findAll(classId: ClassId, paging: Paging)(implicit s: DBSession): Seq[(ClassResource, ClassResourceRevision)] = {
+  def findAll(classId: ClassId, paging: Paging)(implicit s: DBSession):
+      Seq[(ClassResource, ClassResourceRevision, Option[User], Option[User])] = {
     ClassModel.findId(classId).map(findAll(_, paging)).getOrElse(Seq())
   }
 
@@ -64,18 +70,26 @@ trait ClassResourceModel {
     ClassModel.findId(classId).map(count).getOrElse(0L)
   }
 
-  def findRevisions(resourceId: Int, paging: Paging)(implicit s: DBSession): Option[(ClassResource, Seq[ClassResourceRevision])] = {
+  def findRevisions(resourceId: Int, paging: Paging)(implicit s: DBSession):
+      Option[(ClassResource, Option[User], Seq[(ClassResourceRevision, Option[User])])] = {
+    val u1 = User.syntax("u1")
+    val u2 = User.syntax("u2")
     withSQL {
       paging.sql {
         select.from(ClassResource as cr)
           .leftJoin(ClassResourceRevision as crr).on(SQLSyntax
             .eq(cr.id, crr.resourceId).and
             .eq(cr.latestRevisionNumber, crr.revisionNumber))
+          .leftJoin(User as u1).on(cr.createdBy, u1.id)
+          .leftJoin(User as u2).on(crr.userId, u2.id)
           .where.eq(cr.id, resourceId)
       }
     }.one(ClassResource(cr))
-      .toMany(revisionOpt(crr))
-      .map((a, rs) => (a, rs))
+      .toManies(revisionOpt(crr), UserModel.opt(u1), UserModel.opt(u2))
+      .map { (r, rs, cs, us) =>
+        val d = us.groupBy(_.id).mapValues(_.head) // safe
+        (r, cs.headOption, rs.map(re => (re, re.userId.flatMap(d.get))))
+      }
       .single.apply()
   }
 

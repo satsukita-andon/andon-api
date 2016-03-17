@@ -129,8 +129,8 @@ trait ClassEndpoint extends EndpointBase {
         val p = paging
           .minimumOrder(ClassResourceModel.cr.id -> ASC)
           .defaultOrder(ClassResourceModel.cr.createdAt -> DESC)
-        val resources = ClassResourceModel.findAll(id, p).map { case (r, rr) =>
-          ClassResource(r, rr)
+        val resources = ClassResourceModel.findAll(id, p).map { case (r, rr, c, u) =>
+          ClassResource(r, rr, c, u)
         }
         val count = ClassResourceModel.count(id)
         Ok(Items(all_count = count, count = resources.length.toLong, items = resources))

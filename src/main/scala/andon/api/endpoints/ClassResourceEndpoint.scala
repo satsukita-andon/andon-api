@@ -39,12 +39,12 @@ trait ClassResourceEndpoint extends EndpointBase {
     ver / name / int / "revisions" ? paging()
   ) { (resourceId: Int, paging: Paging) =>
       DB.readOnly { implicit s =>
-        ClassResourceModel.findRevisions(resourceId, paging).map { case (a, rs) =>
+        ClassResourceModel.findRevisions(resourceId, paging).map { case (a, c, rs) =>
           val all = ClassResourceModel.countRevisions(resourceId)
           Ok(Items(
             all_count = all,
             count = rs.length.toLong,
-            items = rs.map(r => ClassResource(a, r))
+            items = rs.map { case (r, u) => ClassResource(a, r, c, u) }
           ))
         }.getOrElse(NotFound(ResourceNotFound()))
       }

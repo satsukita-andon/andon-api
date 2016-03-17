@@ -38,14 +38,19 @@ final case class ClassResource(
   description: String,
   url: String,
   comment: String,
-  created_by: Option[Int],
-  updated_by: Option[Int],
+  created_by: Option[User],
+  updated_by: Option[User],
   created_at: DateTime,
   updated_at: DateTime
 )
 
 object ClassResource {
-  def apply(resource: ClassResourceRow, revision: ClassResourceRevisionRow): ClassResource = ClassResource(
+  def apply(
+    resource: ClassResourceRow,
+    revision: ClassResourceRevisionRow,
+    createdBy: Option[UserRow],
+    updatedBy: Option[UserRow]
+  ): ClassResource = ClassResource(
     id = resource.id,
     revision_number = revision.revisionNumber,
     status = PublishingStatus.from(resource.status).get, // TODO
@@ -53,8 +58,8 @@ object ClassResource {
     description = revision.description,
     url = revision.url,
     comment = revision.comment,
-    created_by = resource.createdBy,
-    updated_by = revision.userId,
+    created_by = createdBy.map(User.apply),
+    updated_by = updatedBy.map(User.apply),
     created_at = resource.createdAt,
     updated_at = revision.createdAt
   )
