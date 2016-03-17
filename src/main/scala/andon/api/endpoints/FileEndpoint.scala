@@ -14,17 +14,21 @@ import com.typesafe.config.ConfigFactory
 import andon.api.jsons._
 import andon.api.errors._
 import andon.api.util._
+import andon.api.models.UserModel
 
 object FileEndpoint extends FileEndpoint {
+  val UserModel = andon.api.models.UserModel
 }
 trait FileEndpoint extends EndpointBase {
+
+  val UserModel: UserModel
 
   private val conf = ConfigFactory.load()
   private val storage = conf.getString("static.path")
   private val baseUrl = conf.getString("static.base")
 
   val name = "file"
-  def all = resources :+: images
+  def all = resources :+: images :+: icon
 
   sealed abstract class ImageFormat
   object ImageFormat {
@@ -48,8 +52,7 @@ trait FileEndpoint extends EndpointBase {
     }
   }
 
-  private def saveThumbnail(format: ImageFormat, src: String, dest: String): Unit = {
-    val width = 500
+  private def saveThumbnail(format: ImageFormat, src: String, dest: String, width: Int = 500): Unit = {
     format match {
       case ImageFormat.Pdf | ImageFormat.Svg => FileUtils.copyFile(new File(src), new File(dest))
       case _ => s"convert -resize ${width}x -quality 75 $src $dest".!
@@ -122,6 +125,30 @@ trait FileEndpoint extends EndpointBase {
                   ))
                 }
               }
+            }
+          }
+        }.getOrElse(Future.value(BadRequest(InvalidFileFormat())))
+      }
+    }
+  }
+
+  def icon: Endpoint[Url] = post(
+    ver / name / "icon" :: token :: fileUpload("file")
+  ) { (token: Token, uploaded: FileUpload) =>
+    DB.localTx { implicit s =>
+      token.rejectedOnlyAsync(Right.Suspended) { user =>
+        val ext = FilenameUtils.getExtension(uploaded.fileName)
+        ImageFormat.fromExtension(ext).map { format =>
+          fileReader(uploaded) { reader =>
+            val uuid = UUID.randomUUID().toString()
+            val dir = s"${user.id}/icon/"
+            val path = dir + uuid + "." + ext
+            new File(storage + dir).mkdirs()
+            val writer = Writer.fromOutputStream(new FileOutputStream(storage + path))
+            UserModel.updateIcon(user.id, baseUrl + path) // do not put in Future (i.e., another execution context)
+            Reader.copy(reader, writer).map { _ =>
+              saveThumbnail(format, storage + path, storage + path, 256)
+              Ok(Url(baseUrl + path))
             }
           }
         }.getOrElse(Future.value(BadRequest(InvalidFileFormat())))

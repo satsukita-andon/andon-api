@@ -54,7 +54,6 @@ final case class UserModification(
   chief_first: Option[Boolean],
   chief_second: Option[Boolean],
   chief_third: Option[Boolean],
-  icon_url: Option[String],
   email: Option[String]
 ) {
   def validate(logins: Seq[String]): ValidatedNel[InvalidItem, UserModification] = {
@@ -70,10 +69,6 @@ final case class UserModification(
       (name.length > 30) -> InvalidItem(
         field = "name",
         reason = "`name` length must be less than or equal to 30 characters"
-      ),
-      icon_url.map(Validation.url).getOrElse(true) -> InvalidItem(
-        field = "icon_url",
-        reason = "`icon_url` must be valid url"
       ),
       email.map(Validation.email).getOrElse(true) -> InvalidItem(
         field = "email",

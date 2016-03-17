@@ -89,10 +89,10 @@ trait UserModel {
     chiefFirst: Option[Boolean] = None,
     chiefSecond: Option[Boolean] = None,
     chiefThird: Option[Boolean] = None,
-    iconUrl: Option[String] = None,
     email: Option[String] = None
   )(implicit s: DBSession): Option[User] = {
     User.find(userId).map { user =>
+      val now = DateTime.now
       user.copy(
         login = login,
         name = name,
@@ -103,8 +103,8 @@ trait UserModel {
         chiefFirst = chiefFirst,
         chiefSecond = chiefSecond,
         chiefThird = chiefThird,
-        iconUrl = iconUrl,
-        email = email
+        email = email,
+        updatedAt = now
       ).save()
     }
   }
@@ -115,5 +115,15 @@ trait UserModel {
       user.copy(admin = admin, suspended = suspended, updatedAt = now).save()
     }
   }
-}
 
+  def updateIcon(userId: Int, url: String)(implicit s: DBSession): Option[User] = {
+    // TODO: optimize
+    User.find(userId).map { user =>
+      val now = DateTime.now
+      user.copy(
+        iconUrl = Some(url),
+        updatedAt = now
+      ).save()
+    }
+  }
+}

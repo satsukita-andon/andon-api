@@ -96,7 +96,6 @@ trait UserEndpoint extends EndpointBase {
               chiefFirst = modification.chief_first,
               chiefSecond = modification.chief_second,
               chiefThird = modification.chief_third,
-              iconUrl = modification.icon_url,
               email = modification.email
             ).map { updated =>
               Ok(toDetailed(updated))
