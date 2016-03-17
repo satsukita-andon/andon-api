@@ -50,10 +50,17 @@ trait UserModel {
       .list.apply()
   }
 
-  def findAllLogin(implicit s: DBSession): Seq[String] = {
-    withSQL {
-      select(u.login).from(User as u)
-    }.map(_.string(0)).list.apply()
+  def findAllLogin(userId: Option[Int] = None)(implicit s: DBSession): Seq[String] = {
+    // TODO: duplicate code
+    userId.map { id =>
+      withSQL {
+        select(u.login).from(User as u).where.ne(u.id, id)
+      }.map(_.string(1)).list.apply()
+    }.getOrElse {
+      withSQL {
+        select(u.login).from(User as u)
+      }.map(_.string(1)).list.apply()
+    }
   }
 
   def countAll(implicit s: DBSession): Long = User.countAll()

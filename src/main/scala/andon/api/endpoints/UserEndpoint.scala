@@ -59,7 +59,7 @@ trait UserEndpoint extends EndpointBase {
 
   def create: Endpoint[DetailedUserWithToken] = post(ver / name ? body.as[UserCreation]) { creation: UserCreation =>
     DB.localTx { implicit s =>
-      val logins = UserModel.findAllLogin
+      val logins = UserModel.findAllLogin()
       val upper = SatsukitaInfo.firstGradeTimes
       creation.validate(logins, upper).toXor.fold(
         errors => BadRequest(ValidationError(errors)),
@@ -80,11 +80,11 @@ trait UserEndpoint extends EndpointBase {
     ver :: name :: token :: body.as[UserModification]
   ) { (token: Token, modification: UserModification) =>
     DB.localTx { implicit s =>
-      val logins = UserModel.findAllLogin
-      modification.validate(logins).toXor.fold(
-        errors => BadRequest(ValidationError(errors)),
-        modification => {
-          token.withUser { user =>
+      token.withUser { user =>
+        val logins = UserModel.findAllLogin(Some(user.id))
+        modification.validate(logins).toXor.fold(
+          errors => BadRequest(ValidationError(errors)),
+          modification => {
             UserModel.update(
               userId = user.id,
               login = modification.login,
@@ -101,8 +101,8 @@ trait UserEndpoint extends EndpointBase {
               Ok(toDetailed(updated))
             }.getOrElse(NotFound(ResourceNotFound()))
           }
-        }
-      )
+        )
+      }
     }
   }
 
