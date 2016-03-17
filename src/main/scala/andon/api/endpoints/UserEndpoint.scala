@@ -77,7 +77,7 @@ trait UserEndpoint extends EndpointBase {
   }
 
   def update: Endpoint[DetailedUser] = put(
-    ver ? token ? body.as[UserModification]
+    ver :: name :: token :: body.as[UserModification]
   ) { (token: Token, modification: UserModification) =>
     DB.localTx { implicit s =>
       val logins = UserModel.findAllLogin
