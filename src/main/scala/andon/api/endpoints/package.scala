@@ -17,6 +17,7 @@ package object endpoints {
       ClassArticleEndpoint.all :+:
       ClassResourceEndpoint.all :+:
       ArticleEndpoint.all :+:
+      ResourceEndpoint.all :+:
       FixedContentEndpoint.all :+:
       FileEndpoint.all :+:
       OtherEndpoint.all :+:

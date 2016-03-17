@@ -10,52 +10,53 @@ import andon.api.jsons._
 import andon.api.models._
 import andon.api.util._
 
-object ArticleEndpoint extends ArticleEndpoint {
-  val ArticleModel = andon.api.models.ArticleModel
+object ResourceEndpoint extends ResourceEndpoint {
+  val ResourceModel = andon.api.models.ResourceModel
 }
-trait ArticleEndpoint extends EndpointBase {
+trait ResourceEndpoint extends EndpointBase {
 
-  val ArticleModel: ArticleModel
+  val ResourceModel: ResourceModel
 
-  val name = "articles"
+  val name = "resources"
   def all = create :+: updateContent :+: updateMeta :+: find :+: findAll :+: findRevisions
 
-  def create: Endpoint[DetailedArticle] = post(
-    ver / name ? token ? body.as[ArticleCreation]
-  ) { (token: Token, creation: ArticleCreation) =>
+  def create: Endpoint[Resource] = post(
+    ver / name ? token ? body.as[ResourceCreation]
+  ) { (token: Token, creation: ResourceCreation) =>
     DB.localTx { implicit s =>
       token.rejectedOnly(Right.Suspended) { user =>
         creation.validate.toXor.fold(
           { nel => BadRequest(ValidationError(nel)) },
           { creation =>
-            val (article, revision) = ArticleModel.create(user.id, creation)
-            Ok(DetailedArticle(article, user, Seq(), revision, Some(user)))
+            val (resource, revision) = ResourceModel.create(user.id, creation)
+            Ok(Resource(resource, user, Seq(), revision, Some(user)))
           }
         )
       }
     }
   }
 
-  // modify (title, body)
-  def updateContent: Endpoint[DetailedArticle] = put(
-    ver / name / int ? token ? body.as[ArticleContentModification]
-  ) { (articleId: Int, token: Token, modification: ArticleContentModification) =>
+  // modify (title, description, url)
+  def updateContent: Endpoint[Resource] = put(
+    ver / name / int ? token ? body.as[ResourceContentModification]
+  ) { (resourceId: Int, token: Token, modification: ResourceContentModification) =>
     DB.localTx { implicit s =>
       // TODO: refactor and optimize
-      def go(user: generated.User): Output[DetailedArticle] = {
-        ArticleModel.updateContent(
-          articleId = articleId,
+      def go(user: generated.User): Output[Resource] = {
+        ResourceModel.updateContent(
+          resourceId = resourceId,
           userId = user.id,
           title = modification.title,
-          body = modification.body,
+          description = modification.description,
+          url = modification.url,
           comment = modification.comment
         ).map { _ =>
-          ArticleModel.find(articleId).map { case (a, o, ts, r, u) =>
-            Ok(DetailedArticle(a, o, ts, r, u))
+          ResourceModel.find(resourceId).map { case (r, o, ts, rr, u) =>
+            Ok(Resource(r, o, ts, rr, u))
           }.getOrElse(NotFound(ResourceNotFound()))
         }.getOrElse(NotFound(ResourceNotFound()))
       }
-      ArticleModel.findMeta(articleId).map {
+      ResourceModel.findMeta(resourceId).map {
         case (_, EditorialRight.All, _, _) => token.withUser(go)
         case (_, EditorialRight.Cohort, ownerId, _) =>
           UserModel.find(ownerId).map { owner =>
@@ -71,14 +72,14 @@ trait ArticleEndpoint extends EndpointBase {
     }
   }
 
-  def updateMeta: Endpoint[DetailedArticle] = put(
-    ver / name / int / "meta" ? token ? body.as[ArticleMetaModification]
-  ) { (articleId: Int, token: Token, modification: ArticleMetaModification) =>
+  def updateMeta: Endpoint[Resource] = put(
+    ver / name / int / "meta" ? token ? body.as[ResourceMetaModification]
+  ) { (resourceId: Int, token: Token, modification: ResourceMetaModification) =>
     DB.localTx { implicit s =>
-      ArticleModel.findMeta(articleId).map { case (status, right, ownerId, editorIds) =>
+      ResourceModel.findMeta(resourceId).map { case (status, right, ownerId, editorIds) =>
         token.allowedOnly(Right.Admin, Right.Is(ownerId)) { user =>
           modification.validate(
-            ArticleMetaModification(
+            ResourceMetaModification(
               status = status,
               editorial_right = right,
               editor_ids = editorIds
@@ -87,15 +88,15 @@ trait ArticleEndpoint extends EndpointBase {
             { errors =>
               BadRequest(ValidationError(errors))
             }, { modification =>
-              ArticleModel.updateMeta(
-                articleId = articleId,
+              ResourceModel.updateMeta(
+                resourceId = resourceId,
                 userId = user.id,
                 status = modification.status,
                 editorialRight = modification.editorial_right,
                 editorIdSet = modification.editor_ids.toSet
               )
-              ArticleModel.find(articleId).map { case (a, o, ts, r, u) =>
-                Ok(DetailedArticle(a, o, ts, r, u))
+              ResourceModel.find(resourceId).map { case (r, o, ts, rr, u) =>
+                Ok(Resource(r, o, ts, rr, u))
               }.getOrElse(NotFound(ResourceNotFound()))
             }
           )
@@ -104,51 +105,51 @@ trait ArticleEndpoint extends EndpointBase {
     }
   }
 
-  // all users (not no logged-in user) can update tags
+  // all users (not only logged-in user) can update tags
   def updateTags: Endpoint[Unit] = put(
     ver / name / int / "tags" ? token ? body.as[Seq[String]]
-  ) { (articleId: Int, token: Token, tags: Seq[String]) =>
+  ) { (resourceId: Int, token: Token, tags: Seq[String]) =>
     Ok(())
   }
 
-  def find: Endpoint[DetailedArticle] = get(ver / name / int) { articleId: Int =>
+  def find: Endpoint[Resource] = get(ver / name / int) { resourceId: Int =>
     DB.readOnly { implicit s =>
-      ArticleModel.find(articleId).map { case (a, o, ts, r, u) =>
-        Ok(DetailedArticle(a, o, ts, r, u))
+      ResourceModel.find(resourceId).map { case (r, o, ts, rr, u) =>
+        Ok(Resource(r, o, ts, rr, u))
       }.getOrElse(NotFound(ResourceNotFound()))
     }
   }
 
-  def findAll: Endpoint[Items[Article]] = get(
-    ver / name ? paging("created_at" -> ArticleModel.a.createdAt, "updated_at" -> ArticleModel.a.updatedAt)
+  def findAll: Endpoint[Items[Resource]] = get(
+    ver / name ? paging("created_at" -> ResourceModel.r.createdAt, "updated_at" -> ResourceModel.r.updatedAt)
   ){ (p: Paging) =>
     val paging = p.defaultLimit(50).maxLimit(100)
-      .defaultOrder((ArticleModel.a.createdAt, DESC))
+      .defaultOrder((ResourceModel.r.createdAt, DESC))
     DB.readOnly { implicit s =>
-      val articles = ArticleModel.findAll(paging).map { case (a, o, ts, r, u) =>
-        Article(a, o, ts, r, u)
+      val resources = ResourceModel.findAll(paging).map { case (r, o, ts, rr, u) =>
+        Resource(r, o, ts, rr, u)
       }
-      val all = ArticleModel.countAll
+      val all = ResourceModel.countAll
       Ok(Items(
-        count = articles.length.toLong,
+        count = resources.length.toLong,
         all_count = all,
-        items = articles
+        items = resources
       ))
     }
   }
 
-  def findRevisions: Endpoint[Items[Article]] = get(
+  def findRevisions: Endpoint[Items[Resource]] = get(
     ver / name / int / "revisions" ? paging()
-  ) { (articleId: Int, paging: Paging) =>
+  ) { (resourceId: Int, paging: Paging) =>
     val p = paging.defaultLimit(20).maxLimit(20)
-      .defaultOrder((ArticleModel.ar.revisionNumber, DESC))
+      .defaultOrder((ResourceModel.rr.revisionNumber, DESC))
     DB.readOnly { implicit s =>
-      ArticleModel.findRevisions(articleId, p).map { case (a, o, ts, rus) =>
-        val all = ArticleModel.countRevisions(articleId)
+      ResourceModel.findRevisions(resourceId, p).map { case (r, o, ts, rus) =>
+        val all = ResourceModel.countRevisions(resourceId)
         Ok(Items(
           count = rus.length.toLong,
           all_count = all,
-          items = rus.map { case (r, u) => Article(a, o, ts, r, u) }
+          items = rus.map { case (rr, u) => Resource(r, o, ts, rr, u) }
         ))
       }.getOrElse(NotFound(ResourceNotFound()))
     }
